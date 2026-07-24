@@ -6,7 +6,7 @@ with 50/50 settle-up.
 
 | Layer | Stack |
 |---|---|
-| Frontend | Next.js 14 (App Router, TypeScript), Tailwind, Framer Motion, TanStack Query |
+| Frontend | Next.js 16 (App Router, TypeScript), Tailwind, Framer Motion, TanStack Query, Recharts |
 | Backend | FastAPI, SQLAlchemy 2.0 async, Pydantic v2 |
 | Database | Supabase Postgres + Auth + Storage |
 
@@ -97,17 +97,24 @@ Everything lives in `backend/.env` (see `.env.example` for the full list):
 
 ---
 
-## Tests
+## Checks
 
 ```bash
 cd backend
 .venv/bin/python -m pytest      # no database or network needed
 .venv/bin/python -m ruff check app tests
+
+cd ../frontend
+npm run typecheck
+npm run lint
+npm run build
 ```
 
-The suite covers tag format and per-breed sequencing, gestation and countdown
-maths, the cent-exact 50/50 split and settle-up, pedigree assembly and cycle
-protection, the shared pagination and filter contract, and the auth gate.
+The backend suite covers tag format and per-breed sequencing, gestation and
+countdown maths, the cent-exact 50/50 split and settle-up, pedigree assembly and
+cycle protection, the shared pagination and filter contract, and the auth gate.
+The frontend build runs without any Supabase keys present — pages that need data
+render their empty and setup states.
 
 ---
 
