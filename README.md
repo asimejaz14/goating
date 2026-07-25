@@ -45,11 +45,12 @@ Create a Supabase project, then run the migrations **in order** in the SQL
 editor (Supabase dashboard → SQL Editor → New query):
 
 ```
-supabase/migrations/0001_init.sql        tables, enums, triggers
-supabase/migrations/0002_indexes_rls.sql indexes, tag allocation
-supabase/migrations/0003_seed.sql        breeds, storage bucket, portal users
-supabase/seed_demo.sql                   optional demo data (see below)
-supabase/seed_demo_remove.sql            takes the demo data back out
+supabase/migrations/0001_init.sql             tables, enums, triggers
+supabase/migrations/0002_indexes_rls.sql      indexes, tag allocation
+supabase/migrations/0003_seed.sql             breeds, storage bucket, portal users
+supabase/migrations/0004_profiles_to_users.sql  fixes a stale-schema edge case (see below)
+supabase/seed_demo.sql                        optional demo data (see below)
+supabase/seed_demo_remove.sql                 takes the demo data back out
 ```
 
 `0003_seed.sql` seeds the three breeds (Makhi Cheeni `MC`, Teddy `TD`, Rajan
@@ -59,6 +60,17 @@ the `insert into users (...)` block at the bottom with real emails, names and
 passwords (whatever you leave there is what you type in at `/login`). To add
 a third partner later, add another row to that block and re-run the file —
 it upserts by email, so re-running is always safe.
+
+`0004_profiles_to_users.sql` only matters if you ran these migrations once
+before the project switched from Supabase Auth to self-issued sessions, when
+0001–0003 created a `profiles` table instead of `users`. `create table if not
+exists` never alters a table that's already there, so a second run creates
+`users` fresh but leaves `goats`, `expenses` and the rest still pointing at
+the old `profiles` table — surfacing later as a foreign-key error like
+`insert or update on table "goats" violates foreign key constraint
+"goats_created_by_fkey" ... is not present in table "profiles"`. Run 0004
+once to repoint everything at `users` and drop `profiles`. It's a no-op on a
+project that never had this problem, so it's safe to run either way.
 
 ### 1b. Demo data (optional)
 
