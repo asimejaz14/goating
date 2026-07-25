@@ -1,32 +1,32 @@
 /**
  * One place for every chart's colours and axis styling.
  *
- * Recharts takes plain props rather than classes, so the palette has to be
- * repeated as literals here — keeping them in a single module is what stops the
- * charts drifting away from the Tailwind theme.
+ * Recharts takes plain colour strings rather than classes, but `var()` resolves
+ * against the element's computed style inside SVG just as it does anywhere
+ * else — so pointing these at the same CSS variables the rest of the UI uses
+ * means the charts follow the light/dark switch for free, with no re-render.
+ *
+ * Multi-series charts step through one hue at decreasing opacity instead of
+ * reaching for new colours, which is what keeps the whole portal at three.
  */
 
 export const CHART_COLORS = {
-  green: "#527D45",
-  greenLight: "#94B888",
-  gold: "#D9A72C",
-  brown: "#A47D55",
-  clay: "#C85A38",
-  pink: "#E294BA",
-  blue: "#7FA6C8",
-  grid: "#F0E8D8",
-  ink: "#5B6656",
+  primary: "hsl(var(--primary))",
+  danger: "hsl(var(--danger))",
+  neutral: "hsl(var(--muted-foreground))",
+  grid: "hsl(var(--border))",
+  axis: "hsl(var(--faint-foreground))",
 } as const;
 
 /** Cycled through for donut/bar series with an unknown number of slices. */
 export const SERIES_COLORS = [
-  CHART_COLORS.green,
-  CHART_COLORS.gold,
-  CHART_COLORS.brown,
-  CHART_COLORS.blue,
-  CHART_COLORS.pink,
-  CHART_COLORS.clay,
-  CHART_COLORS.greenLight,
+  "hsl(var(--primary))",
+  "hsl(var(--primary) / 0.72)",
+  "hsl(var(--primary) / 0.5)",
+  "hsl(var(--muted-foreground) / 0.55)",
+  "hsl(var(--primary) / 0.32)",
+  "hsl(var(--muted-foreground) / 0.32)",
+  "hsl(var(--primary) / 0.2)",
 ];
 
 export const GRID = {
@@ -36,7 +36,19 @@ export const GRID = {
 } as const;
 
 export const TICK = {
-  tick: { fill: "#8A9384", fontSize: 11 },
+  tick: { fill: CHART_COLORS.axis, fontSize: 11 },
   tickLine: false,
   axisLine: false,
 } as const;
+
+/**
+ * Y-axis labels in a fixed 40px gutter, which four- and five-digit money
+ * values overflow — they were being clipped to their last two digits. Anything
+ * past a thousand collapses to `4.2k`, which fits and still reads.
+ */
+export function compactTick(value: number): string {
+  const magnitude = Math.abs(value);
+  if (magnitude >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}m`;
+  if (magnitude >= 1_000) return `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}k`;
+  return String(value);
+}

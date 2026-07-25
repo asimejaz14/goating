@@ -2,9 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * Three colours, and that is the whole palette:
+ *
+ *   1. neutral  — every surface, border and piece of text
+ *   2. primary  — one emerald, spent only on the thing you should look at
+ *   3. danger   — red, and only ever for destructive or overdue
+ *
+ * Everything is an HSL triple behind a CSS variable so the dark theme is a
+ * swap of values rather than a second set of classes scattered through JSX.
+ */
 @layer base {
   :root {
+    --background: 240 20% 99%;
+    --surface: 0 0% 100%;
+    --surface-raised: 0 0% 100%;
+
+    --foreground: 240 10% 9%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 44%;
+    --faint-foreground: 240 4% 58%;
+
+    --primary: 163 94% 22%;
+    --primary-hover: 163 94% 18%;
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 152 60% 95%;
+    --primary-soft-foreground: 163 90% 20%;
+
+    --danger: 0 70% 42%;
+    --danger-hover: 0 70% 36%;
+    --danger-foreground: 0 0% 100%;
+    --danger-soft: 0 80% 97%;
+    --danger-soft-foreground: 0 70% 38%;
+
+    --border: 240 6% 90%;
+    --border-strong: 240 6% 82%;
+    --ring: 163 94% 26%;
+
+    --radius: 0.7rem;
+
     color-scheme: light;
+  }
+
+  .dark {
+    --background: 240 9% 6%;
+    --surface: 240 8% 9%;
+    --surface-raised: 240 7% 12%;
+
+    --foreground: 240 10% 95%;
+    --muted: 240 6% 15%;
+    --muted-foreground: 240 5% 64%;
+    --faint-foreground: 240 5% 50%;
+
+    --primary: 160 84% 42%;
+    --primary-hover: 160 84% 48%;
+    --primary-foreground: 160 90% 6%;
+    --primary-soft: 163 60% 14%;
+    --primary-soft-foreground: 158 70% 68%;
+
+    --danger: 0 72% 56%;
+    --danger-hover: 0 72% 62%;
+    --danger-foreground: 0 80% 8%;
+    --danger-soft: 0 60% 15%;
+    --danger-soft-foreground: 0 80% 76%;
+
+    --border: 240 5% 18%;
+    --border-strong: 240 5% 26%;
+    --ring: 160 84% 44%;
+
+    color-scheme: dark;
+  }
+
+  * {
+    border-color: hsl(var(--border));
   }
 
   html {
@@ -12,45 +82,60 @@
   }
 
   body {
-    @apply bg-cream-100 text-ink antialiased;
-    /* A whisper of paper texture so large cream areas do not read as flat grey. */
-    background-image: radial-gradient(
-      circle at 1px 1px,
-      rgba(132, 97, 63, 0.05) 1px,
-      transparent 0
-    );
-    background-size: 22px 22px;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  /* Visible, on-brand focus everywhere — keyboard users included. */
+  /* One focus treatment, used by everything. */
   :focus-visible {
-    @apply outline-none ring-2 ring-pasture-500 ring-offset-2 ring-offset-cream-100;
+    @apply outline-none ring-2 ring-ring/70 ring-offset-2 ring-offset-background;
   }
 
   /* Tabular figures keep counts and money from jittering as they update. */
   .tnum {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Headings read tighter than body copy at every size. */
+  h1,
+  h2,
+  h3 {
+    @apply tracking-[-0.018em];
+  }
 }
 
 @layer components {
-  .soft-card {
-    @apply rounded-2xl border border-cream-300/70 bg-cream-50 shadow-soft;
+  .card {
+    @apply rounded-[var(--radius)] border border-border bg-surface;
   }
 
-  .soft-input {
-    @apply w-full rounded-xl border border-cream-300 bg-cream-50 px-3.5 py-2.5 text-[15px]
-           text-ink shadow-soft-inner transition placeholder:text-ink-faint
-           focus:border-pasture-400 focus:bg-white;
+  /* Inputs, selects and the picker trigger all land on exactly 40px. */
+  .field {
+    @apply h-10 w-full rounded-[calc(var(--radius)-2px)] border border-border bg-surface
+           px-3 text-[15px] text-foreground transition-colors duration-150
+           placeholder:text-faint-foreground
+           hover:border-border-strong
+           focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/25
+           disabled:cursor-not-allowed disabled:opacity-55;
   }
 
-  .soft-label {
-    @apply mb-1.5 block text-sm font-medium text-ink-muted;
+  .field-label {
+    @apply mb-1.5 block text-[13px] font-medium text-muted-foreground;
   }
 
-  /* Every interactive row and control clears the 44px touch target. */
+  /* Rows in a scrolling list get a comfortable target without the 44px floor
+     bloating every dense table row. */
   .tap {
-    @apply min-h-[44px];
+    @apply min-h-[40px];
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }
 

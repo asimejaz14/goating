@@ -11,7 +11,7 @@ import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { SoftCard } from "@/components/ui/SoftCard";
+import { Card } from "@/components/ui/Card";
 import { formatAge, formatDate } from "@/lib/format";
 import { useGoat, usePedigree } from "@/lib/queries";
 import { useFilters } from "@/lib/useFilters";
@@ -48,10 +48,10 @@ export default function PedigreePage() {
         subtitle="Pick a goat to see everything behind it. The tree builds itself from linked parents."
       />
 
-      <SoftCard className="mb-4">
+      <Card className="mb-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
           <div className="min-w-0 flex-1">
-            <span className="soft-label">Goat</span>
+            <span className="field-label">Goat</span>
             <GoatPicker
               value={goatId}
               selectedLabel={label ?? goat?.tag_number ?? null}
@@ -63,7 +63,7 @@ export default function PedigreePage() {
             />
           </div>
           <div className="lg:w-64">
-            <span className="soft-label">Depth</span>
+            <span className="field-label">Depth</span>
             <SegmentedControl
               value={String(generations)}
               onChange={(value) => filters.setFilter("gens", value === "4" ? undefined : value)}
@@ -71,7 +71,7 @@ export default function PedigreePage() {
             />
           </div>
         </div>
-      </SoftCard>
+      </Card>
 
       {!goatId ? (
         <EmptyState
@@ -80,30 +80,30 @@ export default function PedigreePage() {
           message="Search above and the full ancestry appears — generation by generation, as far back as the portal knows."
         />
       ) : isPending ? (
-        <SoftCard className="space-y-3">
+        <Card className="space-y-3">
           <Skeleton className="h-6 w-52" />
-          <Skeleton className="h-64 w-full rounded-2xl" />
-        </SoftCard>
+          <Skeleton className="h-64 w-full rounded-lg" />
+        </Card>
       ) : isError ? (
         <ErrorState
           message={error instanceof Error ? error.message : "The pedigree did not load."}
           onRetry={() => refetch()}
         />
       ) : (
-        <SoftCard>
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-cream-200 pb-3">
+        <Card>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <Link
                   href={`/goats/${goatId}`}
-                  className="tnum text-lg font-bold text-ink underline-offset-2 hover:underline"
+                  className="tnum text-lg font-bold text-foreground underline-offset-2 hover:underline"
                 >
                   {data.root.tag_number}
                 </Link>
                 {data.root.sex && <SexBadge sex={data.root.sex} />}
-                {data.root.breed_name && <Badge tone="green">{data.root.breed_name}</Badge>}
+                {data.root.breed_name && <Badge tone="primary">{data.root.breed_name}</Badge>}
               </div>
-              <p className="mt-0.5 text-sm text-ink-muted">
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 {data.root.name ? `${data.root.name} · ` : ""}
                 {goat?.age_months !== undefined && goat?.age_months !== null
                   ? formatAge(goat.age_months)
@@ -121,7 +121,7 @@ export default function PedigreePage() {
               action={
                 <Link
                   href={`/goats/${goatId}`}
-                  className="text-sm font-semibold text-pasture-600 hover:text-pasture-700"
+                  className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Open {data.root.tag_number} →
                 </Link>
@@ -134,14 +134,14 @@ export default function PedigreePage() {
                 generations={generations}
                 rootId={goatId}
               />
-              <p className="mt-3 flex items-center gap-1.5 text-xs text-ink-faint">
+              <p className="mt-3 flex items-center gap-1.5 text-xs text-faint-foreground">
                 <Network className="h-3.5 w-3.5" />
                 Dashed cards are ancestors nobody has linked yet — they show the breed as a
                 placeholder. Tap any real goat to open its own page.
               </p>
             </>
           )}
-        </SoftCard>
+        </Card>
       )}
     </>
   );

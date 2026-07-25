@@ -76,9 +76,9 @@ export function ExpireGoatDialog({
       }
     >
       <form id="expire-form" onSubmit={onSubmit} className="space-y-4">
-        <div className="flex items-start gap-2.5 rounded-2xl bg-clay-100 px-3.5 py-3">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-clay-600" />
-          <p className="text-sm leading-snug text-clay-700">
+        <div className="flex items-start gap-2.5 rounded-lg bg-danger-soft px-3.5 py-3">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
+          <p className="text-sm leading-snug text-danger">
             This goat will leave the active herd, the crossing pickers and every count — but
             its full history and pedigree stay. You can reverse this by editing the goat.
           </p>

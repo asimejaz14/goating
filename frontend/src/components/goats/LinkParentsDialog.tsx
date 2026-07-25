@@ -72,9 +72,9 @@ export function LinkParentsDialog({
       }
     >
       <div className="space-y-4">
-        <div className="flex items-start gap-2.5 rounded-2xl bg-pasture-50 px-3.5 py-3">
-          <GitBranch className="mt-0.5 h-4 w-4 shrink-0 text-pasture-600" />
-          <p className="text-sm leading-snug text-pasture-800">
+        <div className="flex items-start gap-2.5 rounded-lg bg-primary-soft px-3.5 py-3">
+          <GitBranch className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <p className="text-sm leading-snug text-primary">
             The tree builds itself from here — link the parents and every generation they
             already carry appears behind them.
           </p>

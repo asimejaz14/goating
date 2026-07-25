@@ -5,22 +5,23 @@ import { forwardRef } from "react";
 
 import { cn } from "@/lib/cn";
 
+import { Tooltip } from "./Tooltip";
+
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const VARIANTS: Record<Variant, string> = {
-  primary:
-    "bg-pasture-600 text-cream-50 shadow-soft hover:bg-pasture-700 active:shadow-press",
+  primary: "bg-primary text-primary-foreground shadow-xs hover:bg-primary-hover",
   secondary:
-    "border border-cream-300 bg-cream-50 text-ink shadow-soft hover:bg-cream-100 active:shadow-press",
-  ghost: "text-ink-muted hover:bg-cream-200 hover:text-ink",
-  danger: "bg-clay-600 text-cream-50 shadow-soft hover:bg-clay-700 active:shadow-press",
+    "border border-border bg-surface text-foreground shadow-xs hover:bg-muted hover:border-border-strong",
+  ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
+  danger: "bg-danger text-danger-foreground shadow-xs hover:bg-danger-hover",
 };
 
 const SIZES: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm gap-1.5 rounded-xl",
-  md: "h-11 px-4 text-[15px] gap-2 rounded-xl",
-  lg: "h-12 px-5 text-base gap-2 rounded-2xl",
+  sm: "h-8 gap-1.5 rounded-md px-2.5 text-[13px]",
+  md: "h-10 gap-2 rounded-md px-3.5 text-sm",
+  lg: "h-11 gap-2 rounded-lg px-5 text-[15px]",
 };
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -41,8 +42,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={props.type ?? "button"}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex select-none items-center justify-center font-semibold transition-all duration-150 ease-soft",
-        "disabled:cursor-not-allowed disabled:opacity-55",
+        "inline-flex select-none items-center justify-center font-medium",
+        "transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-soft",
+        "active:scale-[0.985] disabled:pointer-events-none disabled:opacity-50",
         VARIANTS[variant],
         SIZES[size],
         block && "w-full",
@@ -56,20 +58,30 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   );
 });
 
-/** Circular icon-only button — always 44px so it stays thumb-friendly. */
+/**
+ * Icon-only button. The label is required and becomes both the accessible
+ * name and a real tooltip — an icon with no words needs to be able to say
+ * what it does.
+ */
 export const IconButton = forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { label: string }
->(function IconButton({ label, className, children, ...props }, ref) {
-  return (
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    label: string;
+    size?: "sm" | "md";
+    /** Set when the surrounding text already explains the control. */
+    hideTooltip?: boolean;
+  }
+>(function IconButton({ label, size = "md", hideTooltip, className, children, ...props }, ref) {
+  const button = (
     <button
       ref={ref}
       type={props.type ?? "button"}
       aria-label={label}
-      title={label}
       className={cn(
-        "inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-muted",
-        "transition-colors duration-150 hover:bg-cream-200 hover:text-ink",
+        "inline-flex shrink-0 items-center justify-center rounded-md text-muted-foreground",
+        "transition-colors duration-150 hover:bg-muted hover:text-foreground",
+        "disabled:pointer-events-none disabled:opacity-50",
+        size === "sm" ? "h-8 w-8" : "h-9 w-9",
         className,
       )}
       {...props}
@@ -77,4 +89,7 @@ export const IconButton = forwardRef<
       {children}
     </button>
   );
+
+  if (hideTooltip) return button;
+  return <Tooltip label={label}>{button}</Tooltip>;
 });

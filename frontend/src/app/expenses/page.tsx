@@ -23,7 +23,7 @@ import {
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pagination } from "@/components/ui/Pagination";
 import { Skeleton, SkeletonRows } from "@/components/ui/Skeleton";
-import { SectionCard, SoftCard } from "@/components/ui/SoftCard";
+import { SectionCard, Card } from "@/components/ui/Card";
 import { ApiError } from "@/lib/apiClient";
 import { cn } from "@/lib/cn";
 import { formatDate, formatMoney, formatMonth } from "@/lib/format";
@@ -158,11 +158,11 @@ export default function ExpensesPage() {
         {balance ? (
           <BalanceCard balance={balance} symbol={symbol} />
         ) : (
-          <SoftCard className="space-y-3">
+          <Card className="space-y-3">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="h-9 w-40" />
-            <Skeleton className="h-20 w-full rounded-2xl" />
-          </SoftCard>
+            <Skeleton className="h-20 w-full rounded-lg" />
+          </Card>
         )}
 
         <SectionCard
@@ -171,9 +171,9 @@ export default function ExpensesPage() {
           className="lg:col-span-2"
         >
           {months === undefined ? (
-            <Skeleton className="h-48 w-full rounded-2xl" />
+            <Skeleton className="h-48 w-full rounded-lg" />
           ) : trend.length === 0 ? (
-            <p className="py-10 text-center text-sm text-ink-faint">
+            <p className="py-10 text-center text-sm text-faint-foreground">
               Nothing spent yet — add your first expense and the trend starts here.
             </p>
           ) : (
@@ -191,16 +191,16 @@ export default function ExpensesPage() {
                           filters.setFilter("month", active ? undefined : bucket.period)
                         }
                         className={cn(
-                          "min-w-[7.5rem] rounded-2xl px-3 py-2 text-left transition-all duration-150",
+                          "min-w-[7.5rem] rounded-lg px-3 py-2 text-left transition-all duration-150",
                           active
-                            ? "bg-pasture-600 text-cream-50 shadow-soft"
-                            : "border border-cream-300 bg-cream-50 hover:bg-cream-100",
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "border border-border bg-surface hover:bg-muted",
                         )}
                       >
                         <span
                           className={cn(
                             "block text-[11px] font-semibold uppercase tracking-wide",
-                            active ? "text-cream-200" : "text-ink-faint",
+                            active ? "text-primary-foreground/70" : "text-faint-foreground",
                           )}
                         >
                           {bucket.label}
@@ -208,7 +208,7 @@ export default function ExpensesPage() {
                         <span
                           className={cn(
                             "tnum block text-sm font-bold",
-                            active ? "text-cream-50" : "text-ink",
+                            active ? "text-primary-foreground" : "text-foreground",
                           )}
                         >
                           {formatMoney(bucket.total, symbol)}
@@ -216,7 +216,7 @@ export default function ExpensesPage() {
                         <span
                           className={cn(
                             "block text-[11px]",
-                            active ? "text-cream-200" : "text-ink-faint",
+                            active ? "text-primary-foreground/70" : "text-faint-foreground",
                           )}
                         >
                           {bucket.count} {entries(bucket.count)}
@@ -226,7 +226,7 @@ export default function ExpensesPage() {
                   );
                 })}
               </ul>
-              <p className="mt-2 text-xs text-ink-faint">
+              <p className="mt-2 text-xs text-faint-foreground">
                 Tap a month to filter the ledger below.
               </p>
             </>
@@ -267,37 +267,37 @@ export default function ExpensesPage() {
       </div>
 
       {data && data.items.length > 0 && (
-        <SoftCard className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+        <Card className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <p className="text-xs font-semibold uppercase tracking-wide text-faint-foreground">
               {chips.length ? "Filtered total" : "All time"}
             </p>
-            <p className="tnum text-2xl font-bold leading-tight text-ink">
+            <p className="tnum text-2xl font-bold leading-tight text-foreground">
               {formatMoney(data.summary.total_amount, symbol)}
             </p>
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-1">
             {data.summary.per_payer.map((payer) => (
               <div key={payer.user_id}>
-                <p className="text-xs text-ink-faint">{payer.display_name} paid</p>
-                <p className="tnum text-sm font-bold text-ink">
+                <p className="text-xs text-faint-foreground">{payer.display_name} paid</p>
+                <p className="tnum text-sm font-bold text-foreground">
                   {formatMoney(payer.total, symbol)}
                 </p>
               </div>
             ))}
           </div>
-          <p className="ml-auto text-xs text-ink-faint">
+          <p className="ml-auto text-xs text-faint-foreground">
             {data.summary.count} {entries(data.summary.count)} · half is{" "}
             {formatMoney(Number(data.summary.total_amount) / 2, symbol)} each
           </p>
-        </SoftCard>
+        </Card>
       )}
 
       <div className="mt-4">
         {isPending ? (
-          <SoftCard>
+          <Card>
             <SkeletonRows count={8} />
-          </SoftCard>
+          </Card>
         ) : isError ? (
           <ErrorState
             message={error instanceof Error ? error.message : "The ledger did not load."}
@@ -321,22 +321,22 @@ export default function ExpensesPage() {
           )
         ) : (
           <>
-            <SoftCard className="!p-0">
-              <ul className="divide-y divide-cream-200">
+            <Card className="!p-0">
+              <ul className="divide-y divide-border">
                 {data.items.map((expense) => (
                   <li
                     key={expense.id}
-                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-cream-100/70"
+                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/70"
                   >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold-100 text-gold-700">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                       <Receipt className="h-[18px] w-[18px]" />
                     </span>
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-semibold text-ink">
+                      <p className="truncate text-[15px] font-semibold text-foreground">
                         {expense.name}
                       </p>
-                      <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-ink-faint">
+                      <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-faint-foreground">
                         <span>{formatDate(expense.expense_date)}</span>
                         <span aria-hidden>·</span>
                         <span>{expense.payer_name ?? "Unknown"} paid</span>
@@ -345,7 +345,7 @@ export default function ExpensesPage() {
                             <span aria-hidden>·</span>
                             <Link
                               href={`/goats/${expense.goat_id}`}
-                              className="tnum font-semibold text-pasture-600 underline-offset-2 hover:underline"
+                              className="tnum font-semibold text-primary underline-offset-2 hover:underline"
                             >
                               {expense.goat_tag}
                             </Link>
@@ -360,7 +360,7 @@ export default function ExpensesPage() {
                       </Badge>
                     )}
 
-                    <span className="tnum shrink-0 text-[15px] font-bold text-ink">
+                    <span className="tnum shrink-0 text-[15px] font-bold text-foreground">
                       {formatMoney(expense.amount, symbol)}
                     </span>
 
@@ -377,7 +377,7 @@ export default function ExpensesPage() {
                       </IconButton>
                       <IconButton
                         label={`Delete ${expense.name}`}
-                        className="h-9 w-9 hover:text-clay-600"
+                        className="h-9 w-9 hover:text-danger"
                         onClick={() => setDeleting(expense)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -386,7 +386,7 @@ export default function ExpensesPage() {
                   </li>
                 ))}
               </ul>
-            </SoftCard>
+            </Card>
             <Pagination
               page={data.page}
               pageSize={data.page_size}

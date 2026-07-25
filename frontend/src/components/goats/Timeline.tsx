@@ -25,16 +25,16 @@ const STYLES: Record<
   TimelineEvent["kind"],
   { icon: React.ComponentType<{ className?: string }>; ring: string }
 > = {
-  born: { icon: Cake, ring: "bg-pasture-100 text-pasture-700" },
-  purchased: { icon: ShoppingCart, ring: "bg-barn-100 text-barn-700" },
-  crossed: { icon: Sparkles, ring: "bg-gold-100 text-gold-700" },
-  kidded: { icon: Baby, ring: "bg-pasture-100 text-pasture-700" },
-  kid_registered: { icon: Baby, ring: "bg-pasture-100 text-pasture-700" },
+  born: { icon: Cake, ring: "bg-primary-soft text-primary" },
+  purchased: { icon: ShoppingCart, ring: "bg-muted text-muted-foreground" },
+  crossed: { icon: Sparkles, ring: "bg-muted text-muted-foreground" },
+  kidded: { icon: Baby, ring: "bg-primary-soft text-primary" },
+  kid_registered: { icon: Baby, ring: "bg-primary-soft text-primary" },
   vaccinated: { icon: Syringe, ring: "bg-[#DFEAF5] text-[#2C5578]" },
-  weighed: { icon: Scale, ring: "bg-cream-200 text-ink-muted" },
-  health: { icon: HeartPulse, ring: "bg-clay-100 text-clay-700" },
-  expense: { icon: Banknote, ring: "bg-gold-100 text-gold-700" },
-  expired: { icon: Skull, ring: "bg-cream-200 text-ink-muted" },
+  weighed: { icon: Scale, ring: "bg-muted text-muted-foreground" },
+  health: { icon: HeartPulse, ring: "bg-danger-soft text-danger" },
+  expense: { icon: Banknote, ring: "bg-muted text-muted-foreground" },
+  expired: { icon: Skull, ring: "bg-muted text-muted-foreground" },
 };
 
 /**
@@ -54,7 +54,7 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
         {/* The spine, stopping at the last dot rather than running past it. */}
         <span
           aria-hidden
-          className="absolute left-[15px] top-3 w-px bg-cream-300"
+          className="absolute left-[15px] top-3 w-px bg-border-strong"
           style={{ height: `calc(100% - ${visible.length ? "2.5rem" : "100%"})` }}
         />
         <AnimatePresence initial={false}>
@@ -74,20 +74,20 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
               >
                 <span
                   className={cn(
-                    "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ring-4 ring-cream-50",
+                    "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ring-4 ring-border",
                     ring,
                   )}
                 >
                   <Icon className="h-4 w-4" aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1 pt-0.5">
-                  <p className="text-[15px] font-semibold leading-snug text-ink">
+                  <p className="text-[15px] font-semibold leading-snug text-foreground">
                     {event.title}
                   </p>
                   {event.detail && (
-                    <p className="mt-0.5 text-sm leading-snug text-ink-muted">{event.detail}</p>
+                    <p className="mt-0.5 text-sm leading-snug text-muted-foreground">{event.detail}</p>
                   )}
-                  <p className="mt-1 text-xs text-ink-faint">{formatDate(event.date)}</p>
+                  <p className="mt-1 text-xs text-faint-foreground">{formatDate(event.date)}</p>
                 </div>
               </motion.li>
             );

@@ -2,14 +2,13 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import type { Filters } from "@/lib/useFilters";
 import { useSearchField } from "@/lib/useFilters";
 
 import { Button } from "./Button";
-import { Modal } from "./Modal";
 import { SearchInput } from "./SearchInput";
 
 export interface ActiveChip {
@@ -24,18 +23,19 @@ interface FilterBarProps {
   searchPlaceholder?: string;
   /** Human-readable summary of what is currently filtered. */
   chips: ActiveChip[];
-  /** The filter controls themselves — inline on desktop, in a sheet on mobile. */
+  /** The filter controls themselves. */
   children: React.ReactNode;
   sort?: React.ReactNode;
   className?: string;
 }
 
 /**
- * One filter surface reused by every list in the portal.
+ * Search, one Filters button, and chips for whatever is on.
  *
- * Desktop shows the controls inline under the search box; phones get a
- * bottom-sheet with an Apply button and a badge counting active filters, so the
- * list itself keeps the full screen.
+ * The controls used to sit in an always-visible row of seven dropdowns, which
+ * meant every list opened looking like a tax form. They now live behind a
+ * single button — a popover on desktop, a sheet on mobile — so the default
+ * view is just a search box and the results.
  */
 export function FilterBar({
   filters,
@@ -46,7 +46,25 @@ export function FilterBar({
   className,
 }: FilterBarProps) {
   const [query, setQuery] = useSearchField(filters);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Click-away and Escape both close the desktop popover.
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!popoverRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
 
   const removeChip = (chip: ActiveChip) => {
     if (chip.value === undefined) {
@@ -57,31 +75,95 @@ export function FilterBar({
     filters.setFilter(chip.key, remaining.length ? remaining : undefined);
   };
 
+  const panel = (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2">{children}</div>
+      {sort && <div className="border-t border-border pt-4 sm:hidden">{sort}</div>}
+    </div>
+  );
+
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex items-center gap-2">
         <SearchInput value={query} onChange={setQuery} placeholder={searchPlaceholder} />
 
-        <Button
-          variant="secondary"
-          onClick={() => setSheetOpen(true)}
-          className="relative shrink-0 lg:hidden"
-          aria-label="Filters"
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          Filters
-          {filters.activeCount > 0 && (
-            <span className="tnum absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-pasture-600 px-1 text-[11px] font-bold text-cream-50">
-              {filters.activeCount}
-            </span>
-          )}
-        </Button>
+        <div className="relative shrink-0" ref={popoverRef}>
+          <Button
+            variant="secondary"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+            aria-haspopup="dialog"
+            className={cn(open && "border-border-strong bg-muted")}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            <span className="hidden sm:inline">Filters</span>
+            {filters.activeCount > 0 && (
+              <span className="tnum ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
+                {filters.activeCount}
+              </span>
+            )}
+          </Button>
 
-        {sort && <div className="hidden shrink-0 lg:block">{sort}</div>}
+          <AnimatePresence>
+            {open && (
+              <>
+                {/* Mobile: a sheet. Desktop: an anchored popover. */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={() => setOpen(false)}
+                  className="fixed inset-0 z-40 bg-black/40 sm:hidden"
+                />
+                <motion.div
+                  role="dialog"
+                  aria-label="Filters"
+                  initial={{ opacity: 0, y: 8, scale: 0.99 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.99 }}
+                  transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                  className={cn(
+                    "z-50 border border-border bg-surface p-4 shadow-lg",
+                    "fixed inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-2xl pb-[calc(1rem+env(safe-area-inset-bottom))]",
+                    "sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-[calc(100%+0.5rem)] sm:w-[min(30rem,calc(100vw-2rem))] sm:rounded-lg sm:pb-4",
+                  )}
+                >
+                  <div className="mb-3 flex items-center justify-between sm:hidden">
+                    <h2 className="text-sm font-semibold text-foreground">Filters</h2>
+                    <button
+                      type="button"
+                      onClick={() => setOpen(false)}
+                      aria-label="Close filters"
+                      className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {panel}
+
+                  <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={filters.clearAll}
+                      disabled={filters.activeCount === 0}
+                    >
+                      Clear all
+                    </Button>
+                    <Button size="sm" onClick={() => setOpen(false)}>
+                      Show results
+                    </Button>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {sort && <div className="hidden shrink-0 sm:block">{sort}</div>}
       </div>
-
-      {/* Desktop: controls always visible — no hunting for a hidden panel. */}
-      <div className="hidden flex-wrap items-end gap-3 lg:flex">{children}</div>
 
       <AnimatePresence initial={false}>
         {chips.length > 0 && (
@@ -89,18 +171,21 @@ export function FilterBar({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-wrap items-center gap-2 overflow-hidden"
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-wrap items-center gap-1.5 overflow-hidden"
           >
             {chips.map((chip) => (
               <li key={`${chip.key}:${chip.value ?? ""}`}>
                 <button
                   type="button"
                   onClick={() => removeChip(chip)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-pasture-100 py-1.5 pl-3 pr-2 text-xs font-semibold text-pasture-800 ring-1 ring-inset ring-pasture-200 transition hover:bg-pasture-200"
+                  className="group inline-flex items-center gap-1 rounded-full border border-border bg-surface py-1 pl-2.5 pr-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
                 >
                   {chip.label}
-                  <X className="h-3.5 w-3.5" aria-label={`Remove ${chip.label}`} />
+                  <X
+                    className="h-3 w-3 opacity-60 transition-opacity group-hover:opacity-100"
+                    aria-label={`Remove ${chip.label}`}
+                  />
                 </button>
               </li>
             ))}
@@ -108,7 +193,7 @@ export function FilterBar({
               <button
                 type="button"
                 onClick={filters.clearAll}
-                className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-ink-muted underline underline-offset-2 transition hover:text-ink"
+                className="rounded-full px-2 py-1 text-xs font-medium text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
               >
                 Clear all
               </button>
@@ -116,32 +201,6 @@ export function FilterBar({
           </motion.ul>
         )}
       </AnimatePresence>
-
-      <Modal
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        title="Filters"
-        description="Narrow the list down. Your choices stay in the page link."
-        footer={
-          <>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                filters.clearAll();
-                setSheetOpen(false);
-              }}
-            >
-              Clear all
-            </Button>
-            <Button onClick={() => setSheetOpen(false)}>Show results</Button>
-          </>
-        }
-      >
-        <div className="space-y-4 pb-2">
-          {children}
-          {sort && <div className="border-t border-cream-200 pt-4">{sort}</div>}
-        </div>
-      </Modal>
     </div>
   );
 }

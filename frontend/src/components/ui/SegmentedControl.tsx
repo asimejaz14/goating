@@ -30,7 +30,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       className={cn(
-        "grid gap-1 rounded-2xl bg-cream-200 p-1",
+        "grid gap-1 rounded-md border border-border bg-muted/60 p-1",
         options.length === 2 ? "grid-cols-2" : "grid-cols-3",
         className,
       )}
@@ -45,20 +45,20 @@ export function SegmentedControl<T extends string>({
             aria-checked={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              "relative flex min-h-[44px] flex-col items-center justify-center rounded-xl px-2 py-1.5 text-sm font-semibold transition-colors duration-150",
-              active ? "text-pasture-800" : "text-ink-muted hover:text-ink",
+              "relative flex min-h-[34px] flex-col items-center justify-center rounded-sm px-2 py-1 text-[13px] font-medium transition-colors duration-150",
+              active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
             {active && (
               <motion.span
                 layoutId={`segment-${groupId}`}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0 rounded-xl bg-cream-50 shadow-soft"
+                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-0 rounded-sm bg-surface shadow-xs"
               />
             )}
             <span className="relative">{option.label}</span>
             {option.hint && (
-              <span className="relative text-[11px] font-normal text-ink-faint">
+              <span className="relative text-[11px] font-normal text-faint-foreground">
                 {option.hint}
               </span>
             )}

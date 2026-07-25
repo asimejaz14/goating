@@ -15,7 +15,7 @@ import { GoatPhoto } from "@/components/ui/GoatPhoto";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pagination } from "@/components/ui/Pagination";
 import { SkeletonRows } from "@/components/ui/Skeleton";
-import { SoftCard } from "@/components/ui/SoftCard";
+import { Card } from "@/components/ui/Card";
 import { ApiError } from "@/lib/apiClient";
 import { formatDate } from "@/lib/format";
 import { useDeleteVaccination, useVaccinations, useVaccineNames } from "@/lib/queries";
@@ -114,9 +114,9 @@ export default function VaccinationsPage() {
 
       <div className="mt-4">
         {isPending ? (
-          <SoftCard>
+          <Card>
             <SkeletonRows count={8} />
-          </SoftCard>
+          </Card>
         ) : isError ? (
           <ErrorState
             message={error instanceof Error ? error.message : "The log did not load."}
@@ -140,12 +140,12 @@ export default function VaccinationsPage() {
           )
         ) : (
           <>
-            <SoftCard className="!p-0">
-              <ul className="divide-y divide-cream-200">
+            <Card className="!p-0">
+              <ul className="divide-y divide-border">
                 {data.items.map((record) => (
                   <li
                     key={record.id}
-                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-cream-100/70"
+                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/70"
                   >
                     {record.goat ? (
                       <Link
@@ -156,21 +156,21 @@ export default function VaccinationsPage() {
                           src={record.goat.photo_url}
                           alt=""
                           size={36}
-                          rounded="rounded-xl"
+                          rounded="rounded-md"
                         />
-                        <span className="tnum hidden text-sm font-bold text-ink sm:block">
+                        <span className="tnum hidden text-sm font-bold text-foreground sm:block">
                           {record.goat.tag_number}
                         </span>
                       </Link>
                     ) : (
-                      <span className="h-9 w-9 shrink-0 rounded-xl bg-cream-200" />
+                      <span className="h-9 w-9 shrink-0 rounded-md bg-muted" />
                     )}
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-semibold text-ink">
+                      <p className="truncate text-[15px] font-semibold text-foreground">
                         {record.vaccine_name}
                       </p>
-                      <p className="truncate text-xs text-ink-faint">
+                      <p className="truncate text-xs text-faint-foreground">
                         <span className="tnum sm:hidden">
                           {record.goat?.tag_number ?? "—"} ·{" "}
                         </span>
@@ -182,7 +182,7 @@ export default function VaccinationsPage() {
 
                     <IconButton
                       label={`Delete ${record.vaccine_name} record`}
-                      className="shrink-0 hover:text-clay-600"
+                      className="shrink-0 hover:text-danger"
                       onClick={() => setDeleting(record)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -190,7 +190,7 @@ export default function VaccinationsPage() {
                   </li>
                 ))}
               </ul>
-            </SoftCard>
+            </Card>
             <Pagination
               page={data.page}
               pageSize={data.page_size}

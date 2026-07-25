@@ -13,9 +13,9 @@ interface SearchInputProps {
 
 export function SearchInput({ value, onChange, placeholder, className }: SearchInputProps) {
   return (
-    <div className={cn("relative flex-1", className)}>
+    <div className={cn("relative min-w-0 flex-1", className)}>
       <Search
-        className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
+        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint-foreground"
         aria-hidden
       />
       <input
@@ -24,16 +24,16 @@ export function SearchInput({ value, onChange, placeholder, className }: SearchI
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder ?? "Search…"}
         aria-label={placeholder ?? "Search"}
-        className="soft-input tap pl-10 pr-10 [&::-webkit-search-cancel-button]:hidden"
+        className="field pl-9 pr-9 [&::-webkit-search-cancel-button]:hidden"
       />
       {value && (
         <button
           type="button"
           onClick={() => onChange("")}
           aria-label="Clear search"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-ink-faint transition hover:text-ink"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-faint-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </button>
       )}
     </div>

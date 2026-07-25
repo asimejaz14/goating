@@ -93,11 +93,11 @@ export function SettleUpDialog({
       }
     >
       <form id="settle-form" onSubmit={onSubmit} className="space-y-4">
-        <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl bg-pasture-50 px-4 py-3 text-center">
-          <span className="text-[15px] font-bold text-ink">{balance.debtor_name ?? "—"}</span>
-          <ArrowRight className="h-4 w-4 text-pasture-600" aria-hidden />
-          <span className="text-[15px] font-bold text-ink">{balance.creditor_name ?? "—"}</span>
-          <span className="w-full text-sm text-ink-muted">
+        <div className="flex flex-wrap items-center justify-center gap-2 rounded-lg bg-primary-soft px-4 py-3 text-center">
+          <span className="text-[15px] font-bold text-foreground">{balance.debtor_name ?? "—"}</span>
+          <ArrowRight className="h-4 w-4 text-primary" aria-hidden />
+          <span className="text-[15px] font-bold text-foreground">{balance.creditor_name ?? "—"}</span>
+          <span className="w-full text-sm text-muted-foreground">
             Outstanding balance {formatMoney(owed, symbol)}
           </span>
         </div>

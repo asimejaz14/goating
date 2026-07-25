@@ -82,25 +82,25 @@ export function GoatPicker({
           disabled={disabled}
           onClick={() => setOpen(true)}
           className={cn(
-            "soft-input tap flex items-center justify-between gap-2 text-left",
-            !value && "text-ink-faint",
+            "field tap flex items-center justify-between gap-2 text-left",
+            !value && "text-faint-foreground",
             disabled && "cursor-not-allowed opacity-60",
           )}
         >
           <span className="truncate">
             {triggerLabel}
             {selected?.name && (
-              <span className="ml-1.5 text-ink-muted">· {selected.name}</span>
+              <span className="ml-1.5 text-muted-foreground">· {selected.name}</span>
             )}
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden />
+          <ChevronDown className="h-4 w-4 shrink-0 text-faint-foreground" aria-hidden />
         </button>
         {value && !disabled && (
           <button
             type="button"
             onClick={() => onChange(null)}
             aria-label="Clear selection"
-            className="tap rounded-xl px-2 text-ink-faint transition hover:text-ink"
+            className="tap rounded-md px-2 text-faint-foreground transition hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
@@ -115,7 +115,7 @@ export function GoatPicker({
       >
         <div className="relative mb-3">
           <Search
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint-foreground"
             aria-hidden
           />
           <input
@@ -124,12 +124,12 @@ export function GoatPicker({
             onChange={(event) => setTerm(event.target.value)}
             placeholder="BGF-MC-01 or a name…"
             aria-label="Search goats"
-            className="soft-input tap pl-10"
+            className="field tap pl-10"
           />
         </div>
 
         {options.length === 0 ? (
-          <p className="py-8 text-center text-sm text-ink-muted">
+          <p className="py-8 text-center text-sm text-muted-foreground">
             {isFetching ? "Searching…" : "No active goats match that search."}
           </p>
         ) : (
@@ -144,22 +144,22 @@ export function GoatPicker({
                     setTerm("");
                   }}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors",
-                    goat.id === value ? "bg-pasture-100" : "hover:bg-cream-200",
+                    "flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors",
+                    goat.id === value ? "bg-primary-soft" : "hover:bg-muted",
                   )}
                 >
-                  <GoatPhoto src={goat.photo_url} alt="" size={40} rounded="rounded-xl" />
+                  <GoatPhoto src={goat.photo_url} alt="" size={40} rounded="rounded-md" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-ink">
+                    <span className="block truncate text-sm font-semibold text-foreground">
                       {goat.tag_number}
-                      {goat.name && <span className="font-normal text-ink-muted"> · {goat.name}</span>}
+                      {goat.name && <span className="font-normal text-muted-foreground"> · {goat.name}</span>}
                     </span>
-                    <span className="block truncate text-xs text-ink-faint">
+                    <span className="block truncate text-xs text-faint-foreground">
                       {goat.breed_name ?? "Unknown breed"} · {formatAge(goat.age_months)}
                     </span>
                   </span>
                   {goat.id === value && (
-                    <Check className="h-4 w-4 shrink-0 text-pasture-600" aria-hidden />
+                    <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />
                   )}
                 </button>
               </li>
@@ -167,7 +167,7 @@ export function GoatPicker({
           </ul>
         )}
 
-        <div className="mt-3 border-t border-cream-200 pt-3">
+        <div className="mt-3 border-t border-border pt-3">
           <Button variant="ghost" size="sm" block onClick={() => setOpen(false)}>
             Cancel
           </Button>

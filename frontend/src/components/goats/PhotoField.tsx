@@ -60,7 +60,7 @@ export function PhotoField({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="tap inline-flex items-center gap-2 rounded-xl border border-cream-300 bg-cream-50 px-3 text-sm font-semibold text-ink shadow-soft transition hover:bg-cream-100 disabled:opacity-60"
+          className="tap inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted disabled:opacity-60"
         >
           {uploading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -73,7 +73,7 @@ export function PhotoField({
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="tap inline-flex items-center gap-2 rounded-xl px-3 text-sm font-semibold text-ink-muted transition hover:text-clay-600"
+            className="tap inline-flex items-center gap-2 rounded-md px-3 text-sm font-semibold text-muted-foreground transition hover:text-danger"
           >
             <Trash2 className="h-4 w-4" />
             Remove

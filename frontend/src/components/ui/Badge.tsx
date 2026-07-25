@@ -3,43 +3,50 @@
 import { cn } from "@/lib/cn";
 import type { AcquisitionType, CrossingStatus, GoatSex, GoatStatus } from "@/lib/types";
 
-type Tone = "green" | "gold" | "clay" | "brown" | "neutral" | "pink" | "blue";
+/**
+ * Three tones, because the palette only has three colours.
+ *
+ * Meaning that used to be carried by a sixth hue is now carried by the words
+ * in the badge — which is more readable anyway, and survives colour blindness.
+ */
+type Tone = "neutral" | "primary" | "danger" | "outline";
 
 const TONES: Record<Tone, string> = {
-  green: "bg-pasture-100 text-pasture-800 ring-pasture-200",
-  gold: "bg-gold-100 text-gold-700 ring-gold-300",
-  clay: "bg-clay-100 text-clay-700 ring-clay-300",
-  brown: "bg-barn-100 text-barn-700 ring-barn-200",
-  neutral: "bg-cream-200 text-ink-muted ring-cream-300",
-  pink: "bg-[#FBE4EE] text-[#8E3560] ring-[#F0BDD3]",
-  blue: "bg-[#DFEAF5] text-[#2C5578] ring-[#B6CFE4]",
+  neutral: "bg-muted text-muted-foreground",
+  primary: "bg-primary-soft text-primary-soft-foreground",
+  danger: "bg-danger-soft text-danger-soft-foreground",
+  outline: "border border-border text-muted-foreground",
 };
 
 export function Badge({
   tone = "neutral",
+  dot,
   className,
   children,
 }: {
   tone?: Tone;
+  /** Small leading dot — distinguishes categories without adding a colour. */
+  dot?: boolean;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset",
+        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium",
         TONES[tone],
         className,
       )}
     >
+      {dot && <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden />}
       {children}
     </span>
   );
 }
 
 const GOAT_STATUS: Record<GoatStatus, { tone: Tone; label: string }> = {
-  active: { tone: "green", label: "Active" },
-  sold: { tone: "gold", label: "Sold" },
+  active: { tone: "primary", label: "Active" },
+  sold: { tone: "outline", label: "Sold" },
   expired: { tone: "neutral", label: "Expired" },
 };
 
@@ -49,23 +56,19 @@ export function StatusBadge({ status }: { status: GoatStatus }) {
 }
 
 export function SexBadge({ sex }: { sex: GoatSex }) {
-  return (
-    <Badge tone={sex === "female" ? "pink" : "blue"}>{sex === "female" ? "Doe" : "Buck"}</Badge>
-  );
+  return <Badge tone="outline" dot>{sex === "female" ? "Doe" : "Buck"}</Badge>;
 }
 
 export function AcquisitionBadge({ type }: { type: AcquisitionType }) {
   return (
-    <Badge tone={type === "bred" ? "green" : "brown"}>
-      {type === "bred" ? "Born here" : "Purchased"}
-    </Badge>
+    <Badge tone="outline">{type === "bred" ? "Born here" : "Purchased"}</Badge>
   );
 }
 
 const CROSSING_STATUS: Record<CrossingStatus, { tone: Tone; label: string }> = {
-  pregnant: { tone: "gold", label: "Expecting" },
-  kidded: { tone: "green", label: "Kidded" },
-  aborted: { tone: "clay", label: "Aborted" },
+  pregnant: { tone: "primary", label: "Expecting" },
+  kidded: { tone: "outline", label: "Kidded" },
+  aborted: { tone: "danger", label: "Aborted" },
   failed: { tone: "neutral", label: "Not settled" },
 };
 

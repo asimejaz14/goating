@@ -7,7 +7,6 @@ import { useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Field";
-import { GoatPlaceholder } from "@/components/ui/GoatPhoto";
 import { ApiError } from "@/lib/apiClient";
 
 export default function LoginPage() {
@@ -43,22 +42,22 @@ export default function LoginPage() {
         transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-sm"
       >
-        <div className="mb-6 flex flex-col items-center text-center">
-          <div className="h-20 w-20">
-            <GoatPlaceholder />
-          </div>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">Goat Farm Portal</h1>
-          <p className="mt-1 text-[15px] text-ink-muted">
+        <div className="mb-7 flex flex-col items-center text-center">
+          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-base font-bold text-primary-foreground">
+            BG
+          </span>
+          <h1 className="mt-4 text-xl font-semibold text-foreground">Goat Farm Portal</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
             Sign in to manage the herd and the ledger.
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="soft-card space-y-4 p-5">
+        <form onSubmit={onSubmit} className="card space-y-4 p-5 shadow-sm">
           <Field label="Email">
             {(id) => (
               <div className="relative">
                 <Mail
-                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint-foreground"
                   aria-hidden
                 />
                 <Input
@@ -69,7 +68,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="you@farm.com"
-                  className="pl-10"
+                  className="pl-9"
                 />
               </div>
             )}
@@ -79,7 +78,7 @@ export default function LoginPage() {
             {(id) => (
               <div className="relative">
                 <Lock
-                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint-foreground"
                   aria-hidden
                 />
                 <Input
@@ -90,7 +89,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="••••••••"
-                  className="pl-10"
+                  className="pl-9"
                 />
               </div>
             )}
@@ -99,7 +98,7 @@ export default function LoginPage() {
           {error && (
             <p
               role="alert"
-              className="rounded-xl bg-clay-100 px-3.5 py-2.5 text-sm font-medium text-clay-700"
+              className="rounded-md bg-danger-soft px-3 py-2 text-sm font-medium text-danger-soft-foreground"
             >
               {error}
             </p>
@@ -110,7 +109,7 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-xs leading-relaxed text-ink-faint">
+        <p className="mt-4 text-center text-xs leading-relaxed text-faint-foreground">
           Accounts are added by the farm owner directly in the database.
         </p>
       </motion.div>

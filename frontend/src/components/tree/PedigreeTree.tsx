@@ -69,22 +69,22 @@ function NodeCard({
       ? "border-l-[#E294BA]"
       : node.sex === "male"
         ? "border-l-[#7FA6C8]"
-        : "border-l-cream-300";
+        : "border-l-border";
 
   const inner = (
     <>
       {node.is_placeholder ? (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cream-200 text-ink-faint">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-faint-foreground">
           <HelpCircle className="h-4 w-4" aria-hidden />
         </span>
       ) : (
         <GoatPhoto src={node.photo_url} alt="" size={36} rounded="rounded-lg" />
       )}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13px] font-bold leading-tight text-ink">
+        <span className="block truncate text-[13px] font-bold leading-tight text-foreground">
           {node.is_placeholder ? "Unrecorded" : node.tag_number}
         </span>
-        <span className="block truncate text-[11px] leading-tight text-ink-muted">
+        <span className="block truncate text-[11px] leading-tight text-muted-foreground">
           {node.is_placeholder
             ? (node.breed_name ?? "Unknown breed")
             : node.name || node.breed_name || formatDate(node.date_of_birth)}
@@ -94,12 +94,12 @@ function NodeCard({
   );
 
   const className = cn(
-    "flex items-center gap-2 rounded-xl border border-l-4 px-2 py-1.5",
+    "flex items-center gap-2 rounded-md border border-l-4 px-2 py-1.5",
     SIZES[size].card,
     node.is_placeholder
-      ? "border-dashed border-cream-300 bg-cream-100/70 border-l-cream-300"
-      : cn("border-cream-300 bg-cream-50 shadow-soft transition-shadow hover:shadow-soft-lg", accent),
-    isRoot && !node.is_placeholder && "ring-2 ring-pasture-300",
+      ? "border-dashed border-border bg-muted/70 border-l-border"
+      : cn("border-border bg-surface shadow-sm transition-shadow hover:shadow-md", accent),
+    isRoot && !node.is_placeholder && "ring-2 ring-primary",
   );
 
   return (
@@ -146,12 +146,12 @@ export function PedigreeTree({
         {columns.map((slots, column) => (
           <div key={column} className="flex flex-col">
             {column === 0 && (
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-ink-faint">
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-faint-foreground">
                 This goat
               </p>
             )}
             {column > 0 && (
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-ink-faint">
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-faint-foreground">
                 Gen {column}
               </p>
             )}
@@ -167,7 +167,7 @@ export function PedigreeTree({
                       {/* Horizontal stub from the joint out to this card. */}
                       <span
                         aria-hidden
-                        className="absolute top-1/2 border-t-2 border-cream-300"
+                        className="absolute top-1/2 border-t-2 border-border"
                         style={{ left: `calc(-${stub} / 2)`, width: `calc(${stub} / 2)` }}
                       />
                       {/* Vertical half-leg. The upper sibling reaches down to the
@@ -175,7 +175,7 @@ export function PedigreeTree({
                           boundary is exactly the parent's centre line. */}
                       <span
                         aria-hidden
-                        className="absolute h-1/2 border-l-2 border-cream-300"
+                        className="absolute h-1/2 border-l-2 border-border"
                         style={{
                           left: `calc(-${stub} / 2)`,
                           ...(index % 2 === 0 ? { top: "50%" } : { top: 0 }),
@@ -189,7 +189,7 @@ export function PedigreeTree({
                     (node.dam || node.sire) && (
                       <span
                         aria-hidden
-                        className="absolute top-1/2 right-0 border-t-2 border-cream-300"
+                        className="absolute top-1/2 right-0 border-t-2 border-border"
                         style={{ width: `calc(${stub} / 2)`, marginRight: `calc(-${stub} / 2)` }}
                       />
                     )}
@@ -222,15 +222,15 @@ export function PedigreeCompleteness({
   const percent = total ? Math.round((known / total) * 100) : 0;
   return (
     <div className="flex items-center gap-3">
-      <div className="h-1.5 w-24 overflow-hidden rounded-full bg-cream-200">
+      <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percent}%` }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="h-full rounded-full bg-pasture-500"
+          className="h-full rounded-full bg-primary"
         />
       </div>
-      <span className="tnum text-xs text-ink-muted">
+      <span className="tnum text-xs text-muted-foreground">
         {known} of {total} ancestors recorded
       </span>
     </div>

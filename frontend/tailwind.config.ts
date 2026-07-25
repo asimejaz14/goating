@@ -1,92 +1,88 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Warm farm soft-UI.
+ * Minimal three-colour system: neutral surfaces, one emerald accent, one red.
  *
- * Earthy greens and creams with soft, rounded cards. Neumorphism's softness
- * without its weakness — every text/background pair here clears WCAG AA, because
- * this gets used outdoors on a phone in daylight.
+ * Every colour resolves through a CSS variable defined in globals.css, so the
+ * dark theme swaps values rather than requiring `dark:` on every element.
  */
+const hsl = (variable: string) => `hsl(var(--${variable}) / <alpha-value>)`;
+
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        cream: {
-          50: "#FDFBF6",
-          100: "#F8F3E9",
-          200: "#F0E8D8",
-          300: "#E3D7C0",
+        background: hsl("background"),
+        surface: {
+          DEFAULT: hsl("surface"),
+          raised: hsl("surface-raised"),
         },
-        pasture: {
-          50: "#F0F5EE",
-          100: "#DDE9D8",
-          200: "#BCD4B3",
-          300: "#94B888",
-          400: "#6E9A60",
-          500: "#527D45",
-          600: "#3F6435",
-          700: "#324F2B",
-          800: "#263C21",
-          900: "#1B2B18",
+        foreground: hsl("foreground"),
+        muted: {
+          DEFAULT: hsl("muted"),
+          foreground: hsl("muted-foreground"),
         },
-        barn: {
-          50: "#FAF5F0",
-          100: "#EFE2D4",
-          200: "#DCC4A9",
-          300: "#C2A07C",
-          400: "#A47D55",
-          500: "#84613F",
-          600: "#6A4D32",
-          700: "#523B27",
-          800: "#3B2B1C",
+        faint: {
+          foreground: hsl("faint-foreground"),
         },
-        gold: {
-          100: "#FBF0D4",
-          300: "#EFD08C",
-          500: "#D9A72C",
-          600: "#B8891F",
-          700: "#8F6A17",
+        primary: {
+          DEFAULT: hsl("primary"),
+          hover: hsl("primary-hover"),
+          foreground: hsl("primary-foreground"),
+          soft: hsl("primary-soft"),
+          "soft-foreground": hsl("primary-soft-foreground"),
         },
-        clay: {
-          100: "#FBE7E1",
-          300: "#EFAF9C",
-          500: "#C85A38",
-          600: "#A44528",
-          700: "#7E341D",
+        danger: {
+          DEFAULT: hsl("danger"),
+          hover: hsl("danger-hover"),
+          foreground: hsl("danger-foreground"),
+          soft: hsl("danger-soft"),
+          "soft-foreground": hsl("danger-soft-foreground"),
         },
-        ink: {
-          DEFAULT: "#1F2A1B",
-          muted: "#5B6656",
-          faint: "#8A9384",
+        border: {
+          DEFAULT: hsl("border"),
+          strong: hsl("border-strong"),
         },
+        ring: hsl("ring"),
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       borderRadius: {
-        xl: "0.875rem",
-        "2xl": "1.25rem",
-        "3xl": "1.75rem",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        // The soft-UI stack: a lifted highlight above, a diffuse shadow below.
-        soft: "0 1px 2px rgba(38,60,33,0.04), 0 8px 20px -6px rgba(38,60,33,0.10)",
-        "soft-lg": "0 2px 4px rgba(38,60,33,0.05), 0 18px 36px -12px rgba(38,60,33,0.16)",
-        "soft-inner": "inset 0 2px 5px rgba(38,60,33,0.07)",
-        press: "inset 0 1px 3px rgba(38,60,33,0.16)",
-      },
+        // Restrained elevation — dark mode leans on borders, not drop shadows.
+        xs: "0 1px 2px 0 rgb(0 0 0 / 0.04)",
+        sm: "0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04)",
+        md: "0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04)",
+        lg: "0 12px 32px -8px rgb(0 0 0 / 0.14), 0 4px 8px -4px rgb(0 0 0 / 0.06)",
+       },
       keyframes: {
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
         "fade-up": {
-          from: { opacity: "0", transform: "translateY(8px)" },
+          from: { opacity: "0", transform: "translateY(6px)" },
           to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-down": {
+          from: { opacity: "0", transform: "translateY(-4px) scale(0.98)" },
+          to: { opacity: "1", transform: "translateY(0) scale(1)" },
         },
         shimmer: {
           "100%": { transform: "translateX(100%)" },
         },
       },
       animation: {
-        "fade-up": "fade-up 240ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "fade-in": "fade-in 180ms ease-out both",
+        "fade-up": "fade-up 220ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "slide-down": "slide-down 160ms cubic-bezier(0.22, 1, 0.36, 1) both",
         shimmer: "shimmer 1.6s infinite",
       },
       transitionTimingFunction: {

@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2, Handshake, Scale } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { SoftCard } from "@/components/ui/SoftCard";
+import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
 import { formatMoney, initials } from "@/lib/format";
 import type { Balance } from "@/lib/types";
@@ -35,18 +35,18 @@ export function BalanceCard({
 
   return (
     <>
-      <SoftCard index={index} className={cn("flex flex-col", className)}>
+      <Card index={index} className={cn("flex flex-col p-4", className)}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-ink-muted">Shared balance</p>
-            <p className="mt-0.5 text-xs text-ink-faint">
+            <p className="text-sm font-medium text-muted-foreground">Shared balance</p>
+            <p className="mt-0.5 text-xs text-faint-foreground">
               {formatMoney(total, symbol)} spent, split down the middle
             </p>
           </div>
           <span
             className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-              balance.settled ? "bg-pasture-100 text-pasture-700" : "bg-gold-100 text-gold-700",
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
+              balance.settled ? "bg-primary-soft text-primary" : "bg-muted text-muted-foreground",
             )}
           >
             {balance.settled ? (
@@ -58,35 +58,35 @@ export function BalanceCard({
         </div>
 
         {balance.settled ? (
-          <p className="mt-3 text-lg font-bold leading-snug text-ink">
+          <p className="mt-3 text-lg font-bold leading-snug text-foreground">
             All square — nothing owed either way.
           </p>
         ) : (
           <>
-            <p className="tnum mt-3 text-3xl font-bold leading-none text-ink">
+            <p className="tnum mt-3 text-3xl font-bold leading-none text-foreground">
               {formatMoney(owed, symbol)}
             </p>
-            <p className="mt-2 flex flex-wrap items-center gap-1.5 text-sm text-ink-muted">
-              <span className="font-semibold text-ink">{balance.debtor_name ?? "—"}</span>
-              <ArrowRight className="h-3.5 w-3.5 text-ink-faint" aria-hidden />
-              <span className="font-semibold text-ink">{balance.creditor_name ?? "—"}</span>
+            <p className="mt-2 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{balance.debtor_name ?? "—"}</span>
+              <ArrowRight className="h-3.5 w-3.5 text-faint-foreground" aria-hidden />
+              <span className="font-semibold text-foreground">{balance.creditor_name ?? "—"}</span>
             </p>
           </>
         )}
 
-        <ul className="mt-4 space-y-2 border-t border-cream-200 pt-3">
+        <ul className="mt-4 space-y-2 border-t border-border pt-3">
           {balance.per_person.map((person) => {
             const net = Number(person.net);
             return (
               <li key={person.user_id} className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-barn-100 text-xs font-bold text-barn-600">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
                   {initials(person.display_name)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-ink">
+                  <p className="truncate text-sm font-semibold text-foreground">
                     {person.display_name}
                   </p>
-                  <p className="tnum text-xs text-ink-faint">
+                  <p className="tnum text-xs text-faint-foreground">
                     Paid {formatMoney(person.paid, symbol)} · share{" "}
                     {formatMoney(person.share, symbol)}
                   </p>
@@ -94,7 +94,7 @@ export function BalanceCard({
                 <span
                   className={cn(
                     "tnum shrink-0 text-sm font-bold",
-                    net > 0 ? "text-pasture-600" : net < 0 ? "text-clay-600" : "text-ink-faint",
+                    net > 0 ? "text-primary" : net < 0 ? "text-danger" : "text-faint-foreground",
                   )}
                 >
                   {net > 0 ? "+" : ""}
@@ -111,7 +111,7 @@ export function BalanceCard({
             Settle up
           </Button>
         )}
-      </SoftCard>
+      </Card>
 
       <SettleUpDialog
         open={settling}

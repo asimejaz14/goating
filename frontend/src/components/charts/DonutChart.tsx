@@ -28,7 +28,7 @@ export function DonutChart({
 
   if (!slices.length) {
     return (
-      <p className="py-8 text-center text-sm text-ink-faint">Nothing to chart yet.</p>
+      <p className="py-8 text-center text-sm text-faint-foreground">Nothing to chart yet.</p>
     );
   }
 
@@ -55,8 +55,8 @@ export function DonutChart({
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="tnum text-2xl font-bold leading-none text-ink">{total}</span>
-          <span className="text-[11px] font-medium text-ink-faint">total</span>
+          <span className="tnum text-2xl font-bold leading-none text-foreground">{total}</span>
+          <span className="text-[11px] font-medium text-faint-foreground">total</span>
         </div>
       </div>
 
@@ -68,11 +68,11 @@ export function DonutChart({
               style={{ backgroundColor: colors[index % colors.length] }}
               aria-hidden
             />
-            <span className="min-w-0 flex-1 truncate text-sm text-ink-muted">
+            <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
               {entry.label}
             </span>
-            <span className="tnum shrink-0 text-sm font-bold text-ink">{entry.value}</span>
-            <span className="tnum w-10 shrink-0 text-right text-xs text-ink-faint">
+            <span className="tnum shrink-0 text-sm font-bold text-foreground">{entry.value}</span>
+            <span className="tnum w-10 shrink-0 text-right text-xs text-faint-foreground">
               {total ? Math.round((entry.value / total) * 100) : 0}%
             </span>
           </li>

@@ -41,7 +41,7 @@ export function ConfirmDialog({
         </>
       }
     >
-      <p className="text-[15px] leading-relaxed text-ink-muted">{message}</p>
+      <p className="text-[15px] leading-relaxed text-muted-foreground">{message}</p>
     </Modal>
   );
 }

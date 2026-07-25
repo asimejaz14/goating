@@ -20,10 +20,13 @@ interface ToastApi {
 
 const ToastContext = createContext<ToastApi | null>(null);
 
+// Toasts sit on the surface colour and let a single coloured icon carry the
+// tone — a fully tinted panel shouting from the corner is exactly the kind of
+// noise this palette is trying to avoid.
 const TONE = {
-  success: { icon: CheckCircle2, className: "border-pasture-200 bg-pasture-50 text-pasture-800" },
-  error: { icon: AlertTriangle, className: "border-clay-300 bg-clay-100 text-clay-700" },
-  info: { icon: Info, className: "border-cream-300 bg-cream-50 text-ink" },
+  success: { icon: CheckCircle2, className: "text-primary" },
+  error: { icon: AlertTriangle, className: "text-danger" },
+  info: { icon: Info, className: "text-muted-foreground" },
 } as const;
 
 /** Errors linger — the farmer may be mid-task and need to read what went wrong. */
@@ -73,15 +76,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.97 }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className={`pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl border px-4 py-3 shadow-soft-lg ${className}`}
+                className="pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-lg border border-border bg-surface px-3.5 py-3 text-foreground shadow-lg"
               >
-                <Icon className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
-                <p className="flex-1 text-sm font-medium leading-snug">{toast.message}</p>
+                <Icon className={`mt-px h-4 w-4 shrink-0 ${className}`} aria-hidden />
+                <p className="flex-1 text-[13px] font-medium leading-snug">{toast.message}</p>
                 <button
                   type="button"
                   onClick={() => dismiss(toast.id)}
                   aria-label="Dismiss"
-                  className="-m-1 rounded-lg p-1 opacity-60 transition hover:opacity-100"
+                  className="-m-1 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <X className="h-4 w-4" aria-hidden />
                 </button>

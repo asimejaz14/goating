@@ -165,12 +165,12 @@ export function CrossingForm({ open, onClose, crossing, dam, sire }: CrossingFor
         </Field>
 
         {expected && (
-          <div className="flex items-start gap-2.5 rounded-2xl bg-pasture-50 px-3.5 py-3">
-            <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-pasture-600" />
-            <p className="text-sm leading-snug text-pasture-800">
+          <div className="flex items-start gap-2.5 rounded-lg bg-primary-soft px-3.5 py-3">
+            <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <p className="text-sm leading-snug text-primary">
               Kidding expected around{" "}
               <span className="font-semibold">{formatDate(expected)}</span>
-              <span className="block text-xs text-pasture-700/80">
+              <span className="block text-xs text-primary/80">
                 {gestation} days after crossing. The real date is entered by hand when she
                 kids.
               </span>

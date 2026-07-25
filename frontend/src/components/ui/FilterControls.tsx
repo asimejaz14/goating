@@ -1,13 +1,11 @@
 "use client";
 
-import { ArrowDownWideNarrow } from "lucide-react";
-
 import { cn } from "@/lib/cn";
 import type { Filters } from "@/lib/useFilters";
 
 import { Select } from "./Field";
 
-/** Consistent label styling for every control on the filter row. */
+/** Consistent label styling for every control in the filter panel. */
 function ControlShell({
   label,
   className,
@@ -18,8 +16,8 @@ function ControlShell({
   children: React.ReactNode;
 }) {
   return (
-    <label className={cn("block min-w-0 lg:w-44", className)}>
-      <span className="soft-label">{label}</span>
+    <label className={cn("block min-w-0", className)}>
+      <span className="field-label">{label}</span>
       {children}
     </label>
   );
@@ -74,7 +72,7 @@ export function FilterDate({
         type="date"
         value={filters.get(filterKey)}
         onChange={(event) => filters.setFilter(filterKey, event.target.value || undefined)}
-        className="soft-input tap"
+        className="field"
       />
     </ControlShell>
   );
@@ -97,7 +95,7 @@ export function FilterMonth({
         type="month"
         value={filters.get(filterKey)}
         onChange={(event) => filters.setFilter(filterKey, event.target.value || undefined)}
-        className="soft-input tap"
+        className="field"
       />
     </ControlShell>
   );
@@ -127,32 +125,34 @@ export function FilterNumber({
         placeholder={placeholder}
         value={filters.get(filterKey)}
         onChange={(event) => filters.setFilter(filterKey, event.target.value || undefined)}
-        className="soft-input tnum tap"
+        className="field tnum"
       />
     </ControlShell>
   );
 }
 
-/** Segmented multi-select — used for goat status, where several values combine. */
+/** Multi-select pills — used for goat status, where several values combine. */
 export function FilterChipGroup({
   filters,
   filterKey,
   label,
   options,
   defaults = [],
+  className,
 }: {
   filters: Filters;
   filterKey: string;
   label: string;
   options: Array<{ value: string; label: string }>;
   defaults?: string[];
+  className?: string;
 }) {
   const selected = filters.getAll(filterKey);
   const effective = selected.length ? selected : defaults;
 
   return (
-    <div className="min-w-0">
-      <span className="soft-label">{label}</span>
+    <div className={cn("min-w-0", className)}>
+      <span className="field-label">{label}</span>
       <div className="flex flex-wrap gap-1.5">
         {options.map((option) => {
           const active = effective.includes(option.value);
@@ -168,10 +168,10 @@ export function FilterChipGroup({
                 filters.setFilter(filterKey, next.length ? next : undefined);
               }}
               className={cn(
-                "h-10 rounded-xl px-3 text-sm font-semibold transition-all duration-150",
+                "h-8 rounded-md border px-2.5 text-[13px] font-medium transition-colors duration-150",
                 active
-                  ? "bg-pasture-600 text-cream-50 shadow-soft"
-                  : "border border-cream-300 bg-cream-50 text-ink-muted hover:bg-cream-100",
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-surface text-muted-foreground hover:border-border-strong hover:text-foreground",
               )}
             >
               {option.label}
@@ -197,17 +197,16 @@ export function SortSelect({
     filters.sortBy && filters.sortDir ? `${filters.sortBy}:${filters.sortDir}` : defaultValue;
 
   return (
-    <label className="block lg:w-52">
-      <span className="soft-label flex items-center gap-1.5">
-        <ArrowDownWideNarrow className="h-3.5 w-3.5" aria-hidden />
-        Sort by
-      </span>
+    <>
+      <span className="field-label sm:hidden">Sort by</span>
       <Select
+        aria-label="Sort by"
         value={current}
         onChange={(event) => {
           const [sortBy, sortDir] = event.target.value.split(":");
           filters.setFilters({ sort_by: sortBy, sort_dir: sortDir });
         }}
+        className="sm:w-48"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -215,6 +214,6 @@ export function SortSelect({
           </option>
         ))}
       </Select>
-    </label>
+    </>
   );
 }

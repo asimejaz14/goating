@@ -11,7 +11,7 @@ export function CountUp({ value, className }: { value: number; className?: strin
   const rounded = useTransform(count, (latest) => Math.round(latest).toLocaleString());
 
   useEffect(() => {
-    const controls = animate(count, value, { duration: 0.7, ease: [0.22, 1, 0.36, 1] });
+    const controls = animate(count, value, { duration: 0.6, ease: [0.22, 1, 0.36, 1] });
     return () => controls.stop();
   }, [count, value]);
 
@@ -23,54 +23,57 @@ interface StatCardProps {
   value: number | string;
   icon: React.ComponentType<{ className?: string }>;
   hint?: string;
-  tone?: "green" | "gold" | "brown" | "clay";
+  /** Lifts the one number that matters most on the page. */
+  emphasis?: boolean;
   index?: number;
-  href?: string;
   onClick?: () => void;
 }
-
-const TONES = {
-  green: "bg-pasture-100 text-pasture-700",
-  gold: "bg-gold-100 text-gold-700",
-  brown: "bg-barn-100 text-barn-600",
-  clay: "bg-clay-100 text-clay-600",
-} as const;
 
 export function StatCard({
   label,
   value,
   icon: Icon,
   hint,
-  tone = "green",
+  emphasis,
   index = 0,
   onClick,
 }: StatCardProps) {
+  const Element = onClick ? motion.button : motion.div;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
+    <Element
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: Math.min(index, 10) * 0.04 }}
-      onClick={onClick}
+      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1], delay: Math.min(index, 10) * 0.035 }}
+      {...(onClick ? { onClick, type: "button" as const } : {})}
       className={cn(
-        "soft-card p-4",
-        onClick && "cursor-pointer transition-shadow hover:shadow-soft-lg",
+        "card group flex flex-col p-4 text-left",
+        onClick &&
+          "cursor-pointer transition-[border-color,box-shadow,transform] duration-200 ease-soft hover:-translate-y-0.5 hover:border-border-strong hover:shadow-md",
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-medium leading-tight text-ink-muted">{label}</p>
-        <span
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate text-[13px] font-medium text-muted-foreground">{label}</p>
+        <Icon
           className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-            TONES[tone],
+            "h-4 w-4 shrink-0 transition-colors",
+            emphasis ? "text-primary" : "text-faint-foreground group-hover:text-muted-foreground",
           )}
-        >
-          <Icon className="h-[18px] w-[18px]" />
-        </span>
+        />
       </div>
-      <p className="mt-2 text-3xl font-bold leading-none text-ink">
-        {typeof value === "number" ? <CountUp value={value} /> : <span className="tnum">{value}</span>}
+      <p
+        className={cn(
+          "mt-2 text-[28px] font-semibold leading-none tracking-tight",
+          emphasis ? "text-primary" : "text-foreground",
+        )}
+      >
+        {typeof value === "number" ? (
+          <CountUp value={value} />
+        ) : (
+          <span className="tnum">{value}</span>
+        )}
       </p>
-      {hint && <p className="mt-1.5 text-xs text-ink-faint">{hint}</p>}
-    </motion.div>
+      {hint && <p className="mt-1.5 truncate text-xs text-faint-foreground">{hint}</p>}
+    </Element>
   );
 }

@@ -6,10 +6,11 @@ import { useState } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * Flat illustrated placeholder for goats without a photo.
+ * Placeholder for goats without a photo.
  *
- * Drawn inline rather than shipped as a file so it scales crisply at every size
- * and picks up the farm palette directly.
+ * Line art in a single inherited colour: it reads as "no picture" without
+ * competing with the real photographs beside it, and it costs the palette
+ * nothing because it draws entirely in `currentColor`.
  */
 export function GoatPlaceholder({ className }: { className?: string }) {
   return (
@@ -17,34 +18,26 @@ export function GoatPlaceholder({ className }: { className?: string }) {
       viewBox="0 0 96 96"
       role="img"
       aria-label="No photo yet"
-      className={cn("h-full w-full", className)}
+      fill="none"
+      className={cn("h-full w-full text-faint-foreground", className)}
     >
-      <rect width="96" height="96" rx="18" className="fill-pasture-50" />
-      {/* Ears */}
-      <ellipse cx="26" cy="47" rx="10" ry="6.5" className="fill-barn-300" />
-      <ellipse cx="70" cy="47" rx="10" ry="6.5" className="fill-barn-300" />
-      {/* Horns */}
-      <path
-        d="M38 32c-4-6-3-12 1-15 1 5 3 8 6 11M58 32c4-6 3-12-1-15-1 5-3 8-6 11"
-        className="stroke-barn-500"
-        strokeWidth="3.5"
+      <g
+        stroke="currentColor"
+        strokeWidth="3"
         strokeLinecap="round"
-        fill="none"
-      />
-      {/* Head */}
-      <path
-        d="M48 30c12 0 19 7 19 18 0 13-8 24-19 24S29 61 29 48c0-11 7-18 19-18Z"
-        className="fill-barn-200"
-      />
-      {/* Muzzle */}
-      <ellipse cx="48" cy="62" rx="10" ry="8" className="fill-cream-100" />
-      <circle cx="45" cy="60" r="1.6" className="fill-barn-600" />
-      <circle cx="51" cy="60" r="1.6" className="fill-barn-600" />
-      {/* Eyes */}
-      <ellipse cx="40" cy="46" rx="3.4" ry="3" className="fill-ink" />
-      <ellipse cx="56" cy="46" rx="3.4" ry="3" className="fill-ink" />
-      <circle cx="41.2" cy="45" r="1.1" className="fill-cream-50" />
-      <circle cx="57.2" cy="45" r="1.1" className="fill-cream-50" />
+        strokeLinejoin="round"
+      >
+        {/* Horns */}
+        <path d="M39 33c-5-5-5-11-2-15 2 5 4 8 7 11M57 33c5-5 5-11 2-15-2 5-4 8-7 11" />
+        {/* Head and muzzle */}
+        <path d="M48 32c11 0 17 7 17 17 0 12-7 22-17 22s-17-10-17-22c0-10 6-17 17-17Z" />
+        <path d="M41 62c2 2 4 3 7 3s5-1 7-3" />
+        {/* Ears */}
+        <path d="M31 44c-5-3-10-3-13-1 2 4 7 7 12 7M65 44c5-3 10-3 13-1-2 4-7 7-12 7" />
+      </g>
+      {/* Eyes stay solid so the face still reads at 40px */}
+      <circle cx="41" cy="47" r="2.6" fill="currentColor" />
+      <circle cx="55" cy="47" r="2.6" fill="currentColor" />
     </svg>
   );
 }
@@ -63,7 +56,7 @@ export function GoatPhoto({
   src,
   alt,
   size = 80,
-  rounded = "rounded-2xl",
+  rounded = "rounded-md",
   className,
   priority,
 }: GoatPhotoProps) {
@@ -75,7 +68,7 @@ export function GoatPhoto({
   return (
     <div
       className={cn(
-        "relative shrink-0 overflow-hidden bg-pasture-50",
+        "relative shrink-0 overflow-hidden border border-border bg-muted",
         rounded,
         className,
       )}

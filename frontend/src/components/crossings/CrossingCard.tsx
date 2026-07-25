@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Badge, CrossingBadge } from "@/components/ui/Badge";
 import { Button, IconButton } from "@/components/ui/Button";
 import { GoatPhoto } from "@/components/ui/GoatPhoto";
-import { SoftCard } from "@/components/ui/SoftCard";
+import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
 import { formatCountdown, formatDate, plural } from "@/lib/format";
 import type { Crossing } from "@/lib/types";
@@ -39,33 +39,35 @@ export function CrossingCard({
   const missing = Math.max(0, kids - crossing.kids_registered);
 
   return (
-    <SoftCard index={index} className="relative">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <GoatLink goat={crossing.dam} fallback="Unknown doe" />
-          <span className="shrink-0 text-xs font-semibold text-ink-faint">×</span>
-          <GoatLink goat={crossing.sire} fallback="Unknown buck" />
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <CrossingBadge status={crossing.status} />
-          <IconButton
-            label="More actions"
-            className="h-9 w-9"
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </IconButton>
-        </div>
+    <Card index={index} className="relative">
+      {/* Status and the menu take their own row so the pairing below can use
+          the full card width — squeezed onto one line, both tag numbers
+          truncated to "BGF-…", which is the only thing worth reading here. */}
+      <div className="flex items-center justify-between gap-2">
+        <CrossingBadge status={crossing.status} />
+        <IconButton
+          label="More actions"
+          size="sm"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </IconButton>
+      </div>
+
+      <div className="mt-2 flex items-center gap-2">
+        <GoatLink goat={crossing.dam} fallback="Unknown doe" />
+        <span className="shrink-0 text-xs text-faint-foreground">×</span>
+        <GoatLink goat={crossing.sire} fallback="Unknown buck" />
       </div>
 
       {menuOpen && (
         <div
-          className="absolute right-3 top-14 z-10 w-40 overflow-hidden rounded-xl border border-cream-300 bg-cream-50 py-1 shadow-soft-lg"
+          className="absolute right-3 top-12 z-10 w-40 overflow-hidden rounded-md border border-border bg-surface py-1 shadow-md"
           onMouseLeave={() => setMenuOpen(false)}
         >
           <button
             type="button"
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-ink hover:bg-cream-100"
+            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-foreground hover:bg-muted"
             onClick={() => {
               setMenuOpen(false);
               onEdit(crossing);
@@ -76,7 +78,7 @@ export function CrossingCard({
           </button>
           <button
             type="button"
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-clay-600 hover:bg-clay-100"
+            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-danger hover:bg-danger-soft"
             onClick={() => {
               setMenuOpen(false);
               onDelete(crossing);
@@ -99,7 +101,7 @@ export function CrossingCard({
 
       {pregnant ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Badge tone={crossing.is_overdue ? "clay" : "gold"}>
+          <Badge tone={crossing.is_overdue ? "danger" : "primary"}>
             <CalendarClock className="h-3.5 w-3.5" />
             {formatCountdown(crossing.days_remaining)}
           </Badge>
@@ -109,7 +111,7 @@ export function CrossingCard({
         </div>
       ) : crossing.status === "kidded" ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Badge tone="green">
+          <Badge tone="primary">
             <Baby className="h-3.5 w-3.5" />
             {kids} {plural(kids, "kid")}
           </Badge>
@@ -123,9 +125,9 @@ export function CrossingCard({
       ) : null}
 
       {crossing.notes && (
-        <p className="mt-3 line-clamp-2 text-sm leading-snug text-ink-muted">{crossing.notes}</p>
+        <p className="mt-3 line-clamp-2 text-sm leading-snug text-muted-foreground">{crossing.notes}</p>
       )}
-    </SoftCard>
+    </Card>
   );
 }
 
@@ -137,15 +139,17 @@ function GoatLink({
   fallback: string;
 }) {
   if (!goat) {
-    return <span className="truncate text-sm text-ink-faint">{fallback}</span>;
+    return <span className="truncate text-[13px] text-faint-foreground">{fallback}</span>;
   }
   return (
     <Link
       href={`/goats/${goat.id}`}
-      className="flex min-w-0 items-center gap-1.5 rounded-lg transition-opacity hover:opacity-80"
+      className="flex min-w-0 items-center gap-1.5 rounded-md transition-opacity hover:opacity-70"
     >
-      <GoatPhoto src={goat.photo_url} alt="" size={28} rounded="rounded-lg" />
-      <span className="tnum truncate text-sm font-bold text-ink">{goat.tag_number}</span>
+      <GoatPhoto src={goat.photo_url} alt="" size={22} rounded="rounded-sm" />
+      <span className="tnum truncate text-[13px] font-semibold text-foreground">
+        {goat.tag_number}
+      </span>
     </Link>
   );
 }
@@ -153,10 +157,10 @@ function GoatLink({
 function Cell({ label, value, muted }: { label: string; value: string; muted?: boolean }) {
   return (
     <div className="min-w-0">
-      <dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">
+      <dt className="text-[11px] font-semibold uppercase tracking-wide text-faint-foreground">
         {label}
       </dt>
-      <dd className={cn("truncate text-sm font-semibold", muted ? "text-ink-muted" : "text-ink")}>
+      <dd className={cn("truncate text-sm font-semibold", muted ? "text-muted-foreground" : "text-foreground")}>
         {value}
       </dd>
     </div>

@@ -21,7 +21,7 @@ function Splash() {
       >
         <GoatPlaceholder />
       </motion.div>
-      <p className="text-sm font-medium text-ink-muted">Opening the farm records…</p>
+      <p className="text-sm font-medium text-muted-foreground">Opening the farm records…</p>
     </div>
   );
 }

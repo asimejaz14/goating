@@ -11,17 +11,17 @@ interface PageHeaderProps {
 export function PageHeader({ title, subtitle, action }: PageHeaderProps) {
   return (
     <motion.header
-      initial={{ opacity: 0, y: -6 }}
+      initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      className="mb-5 flex flex-wrap items-end justify-between gap-3"
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      className="mb-5 flex flex-wrap items-center justify-between gap-3"
     >
       <div className="min-w-0">
-        <h1 className="text-2xl font-bold leading-tight tracking-tight text-ink sm:text-3xl">
+        <h1 className="truncate text-xl font-semibold leading-tight text-foreground sm:text-2xl">
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-1 text-[15px] leading-snug text-ink-muted">{subtitle}</p>
+          <p className="mt-1 text-sm leading-snug text-muted-foreground">{subtitle}</p>
         )}
       </div>
       {action && <div className="shrink-0">{action}</div>}

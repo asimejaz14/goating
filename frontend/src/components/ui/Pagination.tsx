@@ -44,7 +44,7 @@ export function Pagination({
       aria-label="Pagination"
       className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-between"
     >
-      <p className="tnum text-sm text-ink-muted">{rangeLabel(page, pageSize, total)}</p>
+      <p className="tnum text-sm text-muted-foreground">{rangeLabel(page, pageSize, total)}</p>
 
       {totalPages > 1 && (
         <div className="flex items-center gap-1.5">
@@ -62,7 +62,7 @@ export function Pagination({
           <ul className="hidden items-center gap-1 sm:flex">
             {pages.map((entry, index) =>
               entry === "gap" ? (
-                <li key={`gap-${index}`} className="px-1.5 text-ink-faint">
+                <li key={`gap-${index}`} className="px-1.5 text-faint-foreground">
                   …
                 </li>
               ) : (
@@ -72,10 +72,10 @@ export function Pagination({
                     onClick={() => onPageChange(entry)}
                     aria-current={entry === page ? "page" : undefined}
                     className={cn(
-                      "tnum h-9 min-w-9 rounded-xl px-2.5 text-sm font-semibold transition-colors",
+                      "tnum h-8 min-w-8 rounded-md px-2 text-[13px] font-medium transition-colors",
                       entry === page
-                        ? "bg-pasture-600 text-cream-50 shadow-soft"
-                        : "text-ink-muted hover:bg-cream-200 hover:text-ink",
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     {entry}
@@ -85,7 +85,7 @@ export function Pagination({
             )}
           </ul>
 
-          <span className="tnum text-sm font-medium text-ink-muted sm:hidden">
+          <span className="tnum text-sm font-medium text-muted-foreground sm:hidden">
             {page} / {totalPages}
           </span>
 

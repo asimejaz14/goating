@@ -99,11 +99,11 @@ export function RecordKiddingForm({
       }
     >
       <form id="kidding-form" onSubmit={onSubmit} className="space-y-4">
-        <div className="flex items-start gap-2.5 rounded-2xl bg-cream-200 px-3.5 py-3">
-          <Baby className="mt-0.5 h-4 w-4 shrink-0 text-barn-600" />
-          <p className="text-sm leading-snug text-ink-muted">
+        <div className="flex items-start gap-2.5 rounded-lg bg-muted px-3.5 py-3">
+          <Baby className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <p className="text-sm leading-snug text-muted-foreground">
             Expected around{" "}
-            <span className="font-semibold text-ink">
+            <span className="font-semibold text-foreground">
               {formatDate(crossing.expected_kidding_date)}
             </span>
             . Enter the day she actually kidded — they rarely match exactly.

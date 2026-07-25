@@ -185,11 +185,11 @@ export function GoatForm({ open, onClose, goat, defaults, onSaved }: GoatFormPro
     >
       <form id="goat-form" onSubmit={onSubmit} className="space-y-4">
         {editing && (
-          <div className="rounded-xl bg-cream-200 px-3.5 py-2.5">
-            <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">
+          <div className="rounded-md bg-muted px-3.5 py-2.5">
+            <p className="text-xs font-medium uppercase tracking-wide text-faint-foreground">
               Tag number
             </p>
-            <p className="tnum text-base font-bold text-ink">{goat?.tag_number}</p>
+            <p className="tnum text-base font-bold text-foreground">{goat?.tag_number}</p>
           </div>
         )}
 
@@ -232,7 +232,7 @@ export function GoatForm({ open, onClose, goat, defaults, onSaved }: GoatFormPro
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <span className="soft-label">Sex</span>
+            <span className="field-label">Sex</span>
             <SegmentedControl<GoatSex>
               value={form.sex}
               onChange={(value) => set("sex", value)}
@@ -244,7 +244,7 @@ export function GoatForm({ open, onClose, goat, defaults, onSaved }: GoatFormPro
           </div>
 
           <div>
-            <span className="soft-label">How did you get this goat?</span>
+            <span className="field-label">How did you get this goat?</span>
             <SegmentedControl<AcquisitionType>
               value={form.acquisition_type}
               onChange={(value) => set("acquisition_type", value)}
@@ -294,7 +294,7 @@ export function GoatForm({ open, onClose, goat, defaults, onSaved }: GoatFormPro
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="overflow-hidden"
             >
-              <div className="grid gap-4 rounded-2xl bg-barn-50 p-3.5 sm:grid-cols-3">
+              <div className="grid gap-4 rounded-lg bg-muted p-3.5 sm:grid-cols-3">
                 <Field label="Purchase date">
                   {(id) => (
                     <Input

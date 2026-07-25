@@ -21,10 +21,9 @@ import { BalanceCard } from "@/components/expenses/BalanceCard";
 import { Badge } from "@/components/ui/Badge";
 import { ErrorState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Card, SectionCard } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { SectionCard, SoftCard } from "@/components/ui/SoftCard";
 import { StatCard } from "@/components/ui/StatCard";
-import { CHART_COLORS } from "@/components/charts/chartTheme";
 import { cn } from "@/lib/cn";
 import { formatCountdown, formatDate, plural } from "@/lib/format";
 import { useDashboard, useMe } from "@/lib/queries";
@@ -79,7 +78,7 @@ export default function DashboardPage() {
           label="Expecting now"
           value={cards.pregnant_now}
           icon={Heart}
-          tone="gold"
+          emphasis
           index={1}
           hint={
             cards.due_next_30_days
@@ -92,7 +91,6 @@ export default function DashboardPage() {
           label="Kids born this year"
           value={cards.kids_born_this_year}
           icon={Baby}
-          tone="brown"
           index={2}
           hint={`${cards.kids_under_6_months} under 6 months`}
           onClick={() => router.push("/goats?acquisition_type=bred")}
@@ -101,7 +99,6 @@ export default function DashboardPage() {
           label="Bought from market"
           value={cards.purchased_count}
           icon={ShoppingBag}
-          tone="clay"
           index={3}
           hint={`${cards.bred_count} born on the farm`}
           onClick={() => router.push("/goats?acquisition_type=purchased")}
@@ -116,27 +113,27 @@ export default function DashboardPage() {
           action={
             <Link
               href="/crossings?status=pregnant&sort_by=expected_kidding_date&sort_dir=asc"
-              className="text-sm font-semibold text-pasture-600 hover:text-pasture-700"
+              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               All crossings →
             </Link>
           }
         >
           {data.upcoming_kiddings.length === 0 ? (
-            <p className="py-6 text-center text-sm text-ink-faint">
+            <p className="py-6 text-center text-sm text-faint-foreground">
               No does are expecting right now. Record a crossing and the countdown starts
               on its own.
             </p>
           ) : (
-            <ul className="divide-y divide-cream-200">
+            <ul className="divide-y divide-border">
               {data.upcoming_kiddings.map((kidding) => (
                 <li key={kidding.crossing_id} className="flex items-center gap-3 py-2.5">
                   <span
                     className={cn(
-                      "flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl",
+                      "flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-md",
                       kidding.is_overdue
-                        ? "bg-clay-100 text-clay-700"
-                        : "bg-pasture-100 text-pasture-700",
+                        ? "bg-danger-soft text-danger"
+                        : "bg-primary-soft text-primary",
                     )}
                   >
                     <span className="tnum text-sm font-bold leading-none">
@@ -149,16 +146,16 @@ export default function DashboardPage() {
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/goats/${kidding.goat_id}`}
-                      className="tnum truncate text-[15px] font-bold text-ink underline-offset-2 hover:underline"
+                      className="tnum truncate text-[15px] font-bold text-foreground underline-offset-2 hover:underline"
                     >
                       {kidding.tag_number}
                     </Link>
-                    <p className="truncate text-xs text-ink-faint">
+                    <p className="truncate text-xs text-faint-foreground">
                       {kidding.name ? `${kidding.name} · ` : ""}
                       due {formatDate(kidding.expected_kidding_date)}
                     </p>
                   </div>
-                  <Badge tone={kidding.is_overdue ? "clay" : "gold"}>
+                  <Badge tone={kidding.is_overdue ? "danger" : "primary"}>
                     {formatCountdown(kidding.days_remaining)}
                   </Badge>
                 </li>
@@ -173,23 +170,20 @@ export default function DashboardPage() {
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
         <SectionCard title="Herd growth" icon={LineChart}>
           <TrendLine data={data.herd_growth} />
-          <p className="mt-2 text-xs text-ink-faint">
+          <p className="mt-2 text-xs text-faint-foreground">
             Active goats at the end of each month.
           </p>
         </SectionCard>
 
         <SectionCard title="Kids born per month" icon={BarChart3}>
-          <TrendBars data={data.births_per_month} color={CHART_COLORS.brown} />
-          <p className="mt-2 text-xs text-ink-faint">
+          <TrendBars data={data.births_per_month} />
+          <p className="mt-2 text-xs text-faint-foreground">
             Counted from each kid&rsquo;s date of birth.
           </p>
         </SectionCard>
 
         <SectionCard title="Does and bucks" icon={PieChart}>
-          <DonutChart
-            data={data.sex_distribution}
-            colors={[CHART_COLORS.pink, CHART_COLORS.blue]}
-          />
+          <DonutChart data={data.sex_distribution} />
         </SectionCard>
 
         <SectionCard title="Breeds" icon={PieChart}>
@@ -202,14 +196,14 @@ export default function DashboardPage() {
           action={
             <Link
               href="/goats?sex=female"
-              className="text-sm font-semibold text-pasture-600 hover:text-pasture-700"
+              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               All does →
             </Link>
           }
         >
           {data.top_does.length === 0 ? (
-            <p className="py-8 text-center text-sm text-ink-faint">
+            <p className="py-8 text-center text-sm text-faint-foreground">
               Once kids are registered and linked to their mothers, the leaderboard fills
               itself in.
             </p>
@@ -223,8 +217,8 @@ export default function DashboardPage() {
                       className={cn(
                         "tnum flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold",
                         index === 0
-                          ? "bg-gold-100 text-gold-700"
-                          : "bg-cream-200 text-ink-muted",
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-muted text-muted-foreground",
                       )}
                     >
                       {index + 1}
@@ -232,25 +226,25 @@ export default function DashboardPage() {
                     <div className="min-w-0 flex-1">
                       <Link
                         href={`/goats/${doe.goat_id}`}
-                        className="tnum truncate text-sm font-bold text-ink underline-offset-2 hover:underline"
+                        className="tnum truncate text-sm font-bold text-foreground underline-offset-2 hover:underline"
                       >
                         {doe.tag_number}
                       </Link>
                       {doe.name && (
-                        <span className="ml-1.5 truncate text-xs text-ink-faint">
+                        <span className="ml-1.5 truncate text-xs text-faint-foreground">
                           {doe.name}
                         </span>
                       )}
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-cream-200">
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
                         <div
-                          className="h-full rounded-full bg-pasture-500"
+                          className="h-full rounded-full bg-primary"
                           style={{ width: `${Math.round((doe.kids / most) * 100)}%` }}
                         />
                       </div>
                     </div>
-                    <span className="tnum shrink-0 text-sm font-bold text-ink">
+                    <span className="tnum shrink-0 text-sm font-bold text-foreground">
                       {doe.kids}
-                      <span className="ml-1 text-xs font-medium text-ink-faint">
+                      <span className="ml-1 text-xs font-medium text-faint-foreground">
                         {plural(doe.kids, "kid")}
                       </span>
                     </span>
@@ -267,7 +261,7 @@ export default function DashboardPage() {
           action={
             <Link
               href="/expenses"
-              className="text-sm font-semibold text-pasture-600 hover:text-pasture-700"
+              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Ledger →
             </Link>
@@ -275,11 +269,11 @@ export default function DashboardPage() {
         >
           <TrendBars
             data={data.monthly_expenses}
-            color={CHART_COLORS.gold}
+
             prefix={symbol}
             highlightLast
           />
-          <p className="mt-2 text-xs text-ink-faint">
+          <p className="mt-2 text-xs text-faint-foreground">
             Everything the farm spent, before the 50/50 split.
           </p>
         </SectionCard>
@@ -294,20 +288,20 @@ function DashboardSkeleton() {
       <PageHeader title="Dashboard" />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <SoftCard key={index} index={index} className="space-y-3">
+          <Card key={index} index={index} className="space-y-3">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-8 w-16" />
             <Skeleton className="h-3 w-20" />
-          </SoftCard>
+          </Card>
         ))}
       </div>
       <div className="mt-3 grid gap-3 lg:grid-cols-3">
-        <Skeleton className="h-64 rounded-3xl lg:col-span-2" />
-        <Skeleton className="h-64 rounded-3xl" />
+        <Skeleton className="h-64 rounded-lg lg:col-span-2" />
+        <Skeleton className="h-64 rounded-lg" />
       </div>
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
         {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} className="h-64 rounded-3xl" />
+          <Skeleton key={index} className="h-64 rounded-lg" />
         ))}
       </div>
     </>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import {
   Area,
   AreaChart,
@@ -16,7 +17,7 @@ import {
 import type { TrendPoint } from "@/lib/types";
 
 import { ChartTooltip } from "./ChartTooltip";
-import { CHART_COLORS, GRID, TICK } from "./chartTheme";
+import { CHART_COLORS, compactTick, GRID, TICK } from "./chartTheme";
 
 /**
  * Every dashboard trend arrives from the API in the same `TrendPoint` shape, so
@@ -34,32 +35,35 @@ interface TrendProps {
 export function TrendLine({
   data,
   height = 200,
-  color = CHART_COLORS.green,
+  color = CHART_COLORS.primary,
   unit,
   prefix,
 }: TrendProps) {
+  // Colours are now `hsl(var(--x))`, which cannot be part of an element id —
+  // React's own unique id keeps two charts on a page from sharing a gradient.
+  const gradientId = `trend-fill-${useId().replace(/:/g, "")}`;
+
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+        <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -6 }}>
           <defs>
-            {/* The id is colour-derived so two charts on one page never collide. */}
-            <linearGradient id={`fill-${color.slice(1)}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.28} />
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.24} />
               <stop offset="100%" stopColor={color} stopOpacity={0.02} />
             </linearGradient>
           </defs>
           <CartesianGrid {...GRID} />
           <XAxis dataKey="label" {...TICK} minTickGap={16} />
-          <YAxis {...TICK} width={40} allowDecimals={false} />
+          <YAxis {...TICK} width={44} allowDecimals={false} tickFormatter={compactTick} />
           <Tooltip content={<ChartTooltip unit={unit} prefix={prefix} />} />
           <Area
             type="monotone"
             dataKey="value"
             name="Total"
             stroke={color}
-            strokeWidth={2.5}
-            fill={`url(#fill-${color.slice(1)})`}
+            strokeWidth={2}
+            fill={`url(#${gradientId})`}
             animationDuration={700}
           />
         </AreaChart>
@@ -71,30 +75,29 @@ export function TrendLine({
 export function TrendBars({
   data,
   height = 200,
-  color = CHART_COLORS.gold,
+  color = CHART_COLORS.primary,
   unit,
   prefix,
-  /** Tints the most recent bar green — "this is where we are now". */
+  /** Dims every bar but the last — "this is where we are now". */
   highlightLast,
 }: TrendProps & { highlightLast?: boolean }) {
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+        <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -6 }}>
           <CartesianGrid {...GRID} />
           <XAxis dataKey="label" {...TICK} minTickGap={12} />
-          <YAxis {...TICK} width={40} allowDecimals={false} />
+          <YAxis {...TICK} width={44} allowDecimals={false} tickFormatter={compactTick} />
           <Tooltip
-            cursor={{ fill: CHART_COLORS.grid, opacity: 0.5 }}
+            cursor={{ fill: CHART_COLORS.grid, opacity: 0.4 }}
             content={<ChartTooltip unit={unit} prefix={prefix} />}
           />
-          <Bar dataKey="value" name="Total" radius={[6, 6, 0, 0]} animationDuration={600}>
+          <Bar dataKey="value" name="Total" radius={[4, 4, 0, 0]} animationDuration={600}>
             {data.map((point, index) => (
               <Cell
                 key={point.period}
-                fill={
-                  highlightLast && index === data.length - 1 ? CHART_COLORS.green : color
-                }
+                fill={color}
+                fillOpacity={highlightLast && index !== data.length - 1 ? 0.35 : 1}
               />
             ))}
           </Bar>
