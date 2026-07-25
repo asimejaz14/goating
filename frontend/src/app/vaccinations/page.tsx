@@ -22,7 +22,7 @@ import { useDeleteVaccination, useVaccinations, useVaccineNames } from "@/lib/qu
 import type { Vaccination } from "@/lib/types";
 import { toQueryParams, useFilters } from "@/lib/useFilters";
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 
 const SORT_OPTIONS = [
   { value: "date_administered:desc", label: "Newest first" },

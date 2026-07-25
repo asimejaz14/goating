@@ -46,21 +46,26 @@ function flatten(root: PedigreeNode, maxGenerations: number): Columns {
   return columns.slice(0, deepest + 1);
 }
 
+/**
+ * Columns share the available width instead of claiming a fixed one, so the
+ * chart shrinks to whatever space it has rather than scrolling sideways.
+ * `--stub` drives both the column gap and the connector geometry, and tightens
+ * on narrow screens — keeping the two in step is what stops the elbows
+ * detaching from the cards.
+ */
 const SIZES = {
-  compact: { card: "w-[140px]", slot: 64, gap: "gap-8", stub: "2rem" },
-  full: { card: "w-[172px]", slot: 76, gap: "gap-10", stub: "2.5rem" },
+  compact: { slot: 64, gap: "[--stub:1rem] sm:[--stub:2rem]" },
+  full: { slot: 76, gap: "[--stub:1rem] sm:[--stub:2.5rem]" },
 } as const;
 
 type Size = keyof typeof SIZES;
 
 function NodeCard({
   node,
-  size,
   column,
   isRoot,
 }: {
   node: PedigreeNode;
-  size: Size;
   column: number;
   isRoot: boolean;
 }) {
@@ -73,12 +78,20 @@ function NodeCard({
 
   const inner = (
     <>
+      {/* The thumbnail is the first thing to go when space is tight — the tag
+          number is what the chart is actually for. */}
       {node.is_placeholder ? (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-faint-foreground">
+        <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-faint-foreground sm:flex">
           <HelpCircle className="h-4 w-4" aria-hidden />
         </span>
       ) : (
-        <GoatPhoto src={node.photo_url} alt="" size={36} rounded="rounded-lg" />
+        <GoatPhoto
+          src={node.photo_url}
+          alt=""
+          size={36}
+          rounded="rounded-lg"
+          className="hidden sm:block"
+        />
       )}
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[13px] font-bold leading-tight text-foreground">
@@ -94,8 +107,7 @@ function NodeCard({
   );
 
   const className = cn(
-    "flex items-center gap-2 rounded-md border border-l-4 px-2 py-1.5",
-    SIZES[size].card,
+    "flex w-full min-w-0 items-center gap-2 rounded-md border border-l-4 px-2 py-1.5",
     node.is_placeholder
       ? "border-dashed border-border bg-muted/70 border-l-border"
       : cn("border-border bg-surface shadow-sm transition-shadow hover:shadow-md", accent),
@@ -134,17 +146,17 @@ export function PedigreeTree({
   rootId?: string | null;
 }) {
   const columns = flatten(root, generations);
-  const { slot, gap, stub } = SIZES[size];
+  const { slot, gap } = SIZES[size];
   const rows = 2 ** (columns.length - 1);
 
   return (
-    <div className="-mx-1 overflow-x-auto px-1 pb-2">
+    <div className="pb-2">
       <div
-        className={cn("flex min-w-max", gap)}
+        className={cn("flex w-full gap-[var(--stub)]", gap)}
         style={{ minHeight: rows * slot }}
       >
         {columns.map((slots, column) => (
-          <div key={column} className="flex flex-col">
+          <div key={column} className="flex min-w-0 flex-1 flex-col">
             {column === 0 && (
               <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-faint-foreground">
                 This goat
@@ -168,7 +180,10 @@ export function PedigreeTree({
                       <span
                         aria-hidden
                         className="absolute top-1/2 border-t-2 border-border"
-                        style={{ left: `calc(-${stub} / 2)`, width: `calc(${stub} / 2)` }}
+                        style={{
+                          left: "calc(var(--stub) / -2)",
+                          width: "calc(var(--stub) / 2)",
+                        }}
                       />
                       {/* Vertical half-leg. The upper sibling reaches down to the
                           slot boundary, the lower one reaches up to it — and that
@@ -177,7 +192,7 @@ export function PedigreeTree({
                         aria-hidden
                         className="absolute h-1/2 border-l-2 border-border"
                         style={{
-                          left: `calc(-${stub} / 2)`,
+                          left: "calc(var(--stub) / -2)",
                           ...(index % 2 === 0 ? { top: "50%" } : { top: 0 }),
                         }}
                       />
@@ -190,13 +205,15 @@ export function PedigreeTree({
                       <span
                         aria-hidden
                         className="absolute top-1/2 right-0 border-t-2 border-border"
-                        style={{ width: `calc(${stub} / 2)`, marginRight: `calc(-${stub} / 2)` }}
+                        style={{
+                          width: "calc(var(--stub) / 2)",
+                          marginRight: "calc(var(--stub) / -2)",
+                        }}
                       />
                     )}
                   {node && (
                     <NodeCard
                       node={node}
-                      size={size}
                       column={column}
                       isRoot={column === 0 && (!rootId || node.id === rootId)}
                     />

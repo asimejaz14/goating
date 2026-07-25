@@ -27,7 +27,7 @@ import { useCrossings, useDeleteCrossing } from "@/lib/queries";
 import type { Crossing } from "@/lib/types";
 import { toQueryParams, useFilters } from "@/lib/useFilters";
 
-const PAGE_SIZE = 18;
+const PAGE_SIZE = 10;
 
 const STATUS_OPTIONS = [
   { value: "pregnant", label: "Expecting" },

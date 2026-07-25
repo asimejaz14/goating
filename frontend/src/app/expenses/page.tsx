@@ -2,7 +2,7 @@
 
 import { CalendarRange, Pencil, Plus, Receipt, Trash2, Wallet } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { TrendBars } from "@/components/charts/TrendChart";
 import { BalanceCard } from "@/components/expenses/BalanceCard";
@@ -39,7 +39,7 @@ import {
 import type { Expense } from "@/lib/types";
 import { toQueryParams, useFilters } from "@/lib/useFilters";
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 const HISTORY_MONTHS = 12;
 
 /** "entry"/"entries" — the one plural the shared helper's `+s` rule can't make. */
@@ -55,9 +55,29 @@ const SORT_OPTIONS = [
   { value: "name:asc", label: "Name (A–Z)" },
 ];
 
+/** `YYYY-MM` for today, in local time — `toISOString` would drift near midnight. */
+function currentMonth(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
 export default function ExpensesPage() {
   const filters = useFilters();
   const toast = useToast();
+  const seededMonth = useRef(false);
+
+  // Open on this month rather than all time — that is what anyone checking the
+  // ledger actually wants. Writing it to the URL (rather than defaulting it in
+  // `useFilters`) is deliberate: it shows up as a removable chip, so clearing
+  // it really does fall back to all time instead of snapping straight back.
+  // The ref keeps it to first arrival, and only when nothing else is filtered.
+  useEffect(() => {
+    if (seededMonth.current) return;
+    seededMonth.current = true;
+    if (filters.activeCount === 0) filters.setFilter("month", currentMonth());
+    // Deliberately mount-only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { data: settings } = useSettings();
   const { data: profiles } = useProfiles();
@@ -179,11 +199,13 @@ export default function ExpensesPage() {
           ) : (
             <>
               <TrendBars data={trend} height={190} prefix={symbol} highlightLast />
-              <ul className="mt-3 flex gap-2 overflow-x-auto pb-1">
+              {/* Wraps rather than scrolls sideways — a horizontal scroller
+                  hid half the months behind an edge nobody thinks to drag. */}
+              <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {(months ?? []).map((bucket) => {
                   const active = activeMonth === bucket.month;
                   return (
-                    <li key={bucket.month} className="shrink-0">
+                    <li key={bucket.month} className="min-w-0">
                       <button
                         type="button"
                         aria-pressed={active}
@@ -191,7 +213,7 @@ export default function ExpensesPage() {
                           filters.setFilter("month", active ? undefined : bucket.month)
                         }
                         className={cn(
-                          "min-w-[7.5rem] rounded-lg px-3 py-2 text-left transition-all duration-150",
+                          "w-full rounded-lg px-3 py-2 text-left transition-all duration-150",
                           active
                             ? "bg-primary text-primary-foreground shadow-sm"
                             : "border border-border bg-surface hover:bg-muted",
@@ -270,7 +292,11 @@ export default function ExpensesPage() {
         <Card className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-faint-foreground">
-              {chips.length ? "Filtered total" : "All time"}
+              {activeMonth && chips.length === 1
+                ? formatMonth(activeMonth)
+                : chips.length
+                  ? "Filtered total"
+                  : "All time"}
             </p>
             <p className="tnum text-2xl font-bold leading-tight text-foreground">
               {formatMoney(data.summary.total_amount, symbol)}

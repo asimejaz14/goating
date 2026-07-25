@@ -22,7 +22,7 @@ import { useBreeds, useGoats } from "@/lib/queries";
 import { titleCase } from "@/lib/format";
 import { toQueryParams, useFilters } from "@/lib/useFilters";
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 10;
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Active" },

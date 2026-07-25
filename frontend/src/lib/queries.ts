@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 
 import { api, type QueryParams } from "./apiClient";
+import { getStoredUser } from "./authToken";
 import type {
   Balance,
   Breed,
@@ -91,7 +92,15 @@ export function useSettings() {
 }
 
 export function useMe() {
-  return useQuery({ queryKey: keys.me, queryFn: () => api.get<CurrentUser>("/me"), ...STATIC });
+  return useQuery({
+    queryKey: keys.me,
+    queryFn: () => api.get<CurrentUser>("/me"),
+    // AuthProvider already revalidates `/me` on mount and writes the result
+    // back into this cache entry, so seeding from the same store keeps the
+    // sidebar populated on first paint without a second identical request.
+    initialData: getStoredUser() ?? undefined,
+    ...STATIC,
+  });
 }
 
 export function useProfiles() {

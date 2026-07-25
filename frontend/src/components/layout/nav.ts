@@ -1,11 +1,6 @@
-import {
-  GitBranch,
-  Heart,
-  LayoutDashboard,
-  Receipt,
-  Syringe,
-  Users,
-} from "lucide-react";
+import { GitBranch, Heart, LayoutDashboard, Receipt, Syringe } from "lucide-react";
+
+import { GoatIcon } from "@/components/ui/icons";
 
 export interface NavItem {
   href: string;
@@ -19,7 +14,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
-  { href: "/goats", label: "Herd", icon: Users },
+  { href: "/goats", label: "Herd", icon: GoatIcon },
   { href: "/crossings", label: "Crossings", shortLabel: "Breeding", icon: Heart },
   { href: "/pedigree", label: "Pedigree", shortLabel: "Tree", icon: GitBranch },
   { href: "/expenses", label: "Expenses", icon: Receipt },

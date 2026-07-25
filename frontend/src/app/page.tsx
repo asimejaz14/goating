@@ -10,7 +10,6 @@ import {
   ShoppingBag,
   Sprout,
   Trophy,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,6 +21,7 @@ import { Badge } from "@/components/ui/Badge";
 import { ErrorState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, SectionCard } from "@/components/ui/Card";
+import { GoatIcon } from "@/components/ui/icons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatCard } from "@/components/ui/StatCard";
 import { cn } from "@/lib/cn";
@@ -69,7 +69,7 @@ export default function DashboardPage() {
         <StatCard
           label="Goats in the herd"
           value={cards.total_goats}
-          icon={Users}
+          icon={GoatIcon}
           index={0}
           hint={`${cards.does} ${plural(cards.does, "doe")} · ${cards.bucks} ${plural(cards.bucks, "buck")}`}
           onClick={() => router.push("/goats")}
