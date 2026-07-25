@@ -3,17 +3,13 @@
 import { cn } from "@/lib/cn";
 import type { AcquisitionType, CrossingStatus, GoatSex, GoatStatus } from "@/lib/types";
 
-/**
- * Three tones, because the palette only has three colours.
- *
- * Meaning that used to be carried by a sixth hue is now carried by the words
- * in the badge — which is more readable anyway, and survives colour blindness.
- */
-type Tone = "neutral" | "primary" | "danger" | "outline";
+type Tone = "neutral" | "primary" | "success" | "warning" | "danger" | "outline";
 
 const TONES: Record<Tone, string> = {
   neutral: "bg-muted text-muted-foreground",
   primary: "bg-primary-soft text-primary-soft-foreground",
+  success: "bg-success-soft text-success-soft-foreground",
+  warning: "bg-warning-soft text-warning-soft-foreground",
   danger: "bg-danger-soft text-danger-soft-foreground",
   outline: "border border-border text-muted-foreground",
 };
@@ -33,7 +29,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-sm px-2 py-0.5 text-xs font-medium",
         TONES[tone],
         className,
       )}
@@ -44,8 +40,9 @@ export function Badge({
   );
 }
 
+/** Green = in the active herd, grey = no longer part of day-to-day operations. */
 const GOAT_STATUS: Record<GoatStatus, { tone: Tone; label: string }> = {
-  active: { tone: "primary", label: "Active" },
+  active: { tone: "success", label: "Active" },
   sold: { tone: "outline", label: "Sold" },
   expired: { tone: "neutral", label: "Expired" },
 };
@@ -60,14 +57,13 @@ export function SexBadge({ sex }: { sex: GoatSex }) {
 }
 
 export function AcquisitionBadge({ type }: { type: AcquisitionType }) {
-  return (
-    <Badge tone="outline">{type === "bred" ? "Born here" : "Purchased"}</Badge>
-  );
+  return <Badge tone="outline">{type === "bred" ? "Born here" : "Purchased"}</Badge>;
 }
 
+/** Amber = in progress, green = resolved successfully, red = did not succeed. */
 const CROSSING_STATUS: Record<CrossingStatus, { tone: Tone; label: string }> = {
-  pregnant: { tone: "primary", label: "Expecting" },
-  kidded: { tone: "outline", label: "Kidded" },
+  pregnant: { tone: "warning", label: "Expecting" },
+  kidded: { tone: "success", label: "Kidded" },
   aborted: { tone: "danger", label: "Aborted" },
   failed: { tone: "neutral", label: "Not settled" },
 };

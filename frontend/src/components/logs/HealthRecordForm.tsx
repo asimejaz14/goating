@@ -6,7 +6,7 @@ import { GoatPicker } from "@/components/goats/GoatPicker";
 import { useToast } from "@/components/providers/ToastProvider";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Select, Textarea } from "@/components/ui/Field";
-import { Modal } from "@/components/ui/Modal";
+import { Drawer } from "@/components/ui/Drawer";
 import { ApiError } from "@/lib/apiClient";
 import { todayISO } from "@/lib/format";
 import { useCreateHealthRecord } from "@/lib/queries";
@@ -78,7 +78,7 @@ export function HealthRecordForm({
   }
 
   return (
-    <Modal
+    <Drawer
       open={open}
       onClose={onClose}
       title="Add a health record"
@@ -176,6 +176,6 @@ export function HealthRecordForm({
           )}
         </Field>
       </form>
-    </Modal>
+    </Drawer>
   );
 }

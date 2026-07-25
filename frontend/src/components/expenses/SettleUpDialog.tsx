@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/providers/ToastProvider";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, MoneyInput, Textarea } from "@/components/ui/Field";
-import { Modal } from "@/components/ui/Modal";
+import { Drawer } from "@/components/ui/Drawer";
 import { ApiError } from "@/lib/apiClient";
 import { formatMoney, todayISO } from "@/lib/format";
 import { useSettings, useSettleUp } from "@/lib/queries";
@@ -76,7 +76,7 @@ export function SettleUpDialog({
   }
 
   return (
-    <Modal
+    <Drawer
       open={open}
       onClose={onClose}
       title="Settle up"
@@ -143,6 +143,6 @@ export function SettleUpDialog({
           )}
         </Field>
       </form>
-    </Modal>
+    </Drawer>
   );
 }

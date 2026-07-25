@@ -1,27 +1,22 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { useAuth } from "@/components/providers/AuthProvider";
-import { GoatPlaceholder } from "@/components/ui/GoatPhoto";
 
 import { Shell } from "./Shell";
 
 const PUBLIC_ROUTES = new Set(["/login"]);
 
-/** Shown while a stored token is being checked against the server — no jarring flash. */
+/** Shown while a stored token is being checked against the server — brief, quiet, on-brand. */
 function Splash() {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6">
-      <motion.div
-        animate={{ scale: [1, 1.06, 1] }}
-        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-        className="h-20 w-20"
-      >
-        <GoatPlaceholder />
-      </motion.div>
-      <p className="text-sm font-medium text-muted-foreground">Opening the farm records…</p>
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-background px-6">
+      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
+        G
+      </span>
+      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
     </div>
   );
 }

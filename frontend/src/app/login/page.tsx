@@ -43,8 +43,8 @@ export default function LoginPage() {
         className="w-full max-w-sm"
       >
         <div className="mb-7 flex flex-col items-center text-center">
-          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-base font-bold text-primary-foreground">
-            BG
+          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-lg font-bold text-primary-foreground">
+            G
           </span>
           <h1 className="mt-4 text-xl font-semibold text-foreground">Goat Farm Portal</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -52,7 +52,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="card space-y-4 p-5 shadow-sm">
+        <form onSubmit={onSubmit} className="card space-y-4 p-5">
           <Field label="Email">
             {(id) => (
               <div className="relative">

@@ -1,6 +1,6 @@
 "use client";
 
-import { GitBranch, Network, Search } from "lucide-react";
+import { ChevronRight, GitBranch, Network, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -101,7 +101,7 @@ export default function PedigreePage() {
                   {data.root.tag_number}
                 </Link>
                 {data.root.sex && <SexBadge sex={data.root.sex} />}
-                {data.root.breed_name && <Badge tone="primary">{data.root.breed_name}</Badge>}
+                {data.root.breed_name && <Badge tone="outline">{data.root.breed_name}</Badge>}
               </div>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {data.root.name ? `${data.root.name} · ` : ""}
@@ -121,9 +121,10 @@ export default function PedigreePage() {
               action={
                 <Link
                   href={`/goats/${goatId}`}
-                  className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  className="inline-flex items-center gap-0.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  Open {data.root.tag_number} →
+                  Open {data.root.tag_number}
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
               }
             />

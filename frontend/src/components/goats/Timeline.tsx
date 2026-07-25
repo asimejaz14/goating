@@ -25,14 +25,14 @@ const STYLES: Record<
   TimelineEvent["kind"],
   { icon: React.ComponentType<{ className?: string }>; ring: string }
 > = {
-  born: { icon: Cake, ring: "bg-primary-soft text-primary" },
+  born: { icon: Cake, ring: "bg-primary-soft text-primary-soft-foreground" },
   purchased: { icon: ShoppingCart, ring: "bg-muted text-muted-foreground" },
   crossed: { icon: Sparkles, ring: "bg-muted text-muted-foreground" },
-  kidded: { icon: Baby, ring: "bg-primary-soft text-primary" },
-  kid_registered: { icon: Baby, ring: "bg-primary-soft text-primary" },
-  vaccinated: { icon: Syringe, ring: "bg-[#DFEAF5] text-[#2C5578]" },
+  kidded: { icon: Baby, ring: "bg-primary-soft text-primary-soft-foreground" },
+  kid_registered: { icon: Baby, ring: "bg-primary-soft text-primary-soft-foreground" },
+  vaccinated: { icon: Syringe, ring: "bg-accent-soft text-accent-soft-foreground" },
   weighed: { icon: Scale, ring: "bg-muted text-muted-foreground" },
-  health: { icon: HeartPulse, ring: "bg-danger-soft text-danger" },
+  health: { icon: HeartPulse, ring: "bg-danger-soft text-danger-soft-foreground" },
   expense: { icon: Banknote, ring: "bg-muted text-muted-foreground" },
   expired: { icon: Skull, ring: "bg-muted text-muted-foreground" },
 };

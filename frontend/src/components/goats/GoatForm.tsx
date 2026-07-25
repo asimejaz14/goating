@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/providers/ToastProvider";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, MoneyInput, Select, Textarea } from "@/components/ui/Field";
-import { Modal } from "@/components/ui/Modal";
+import { Drawer } from "@/components/ui/Drawer";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { ApiError } from "@/lib/apiClient";
 import { useBreeds, useCreateGoat, useSettings, useUpdateGoat } from "@/lib/queries";
@@ -162,7 +162,7 @@ export function GoatForm({ open, onClose, goat, defaults, onSaved }: GoatFormPro
   const purchased = form.acquisition_type === "purchased";
 
   return (
-    <Modal
+    <Drawer
       open={open}
       onClose={onClose}
       size="lg"
@@ -379,6 +379,6 @@ export function GoatForm({ open, onClose, goat, defaults, onSaved }: GoatFormPro
           )}
         </Field>
       </form>
-    </Modal>
+    </Drawer>
   );
 }

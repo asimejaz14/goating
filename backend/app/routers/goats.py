@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi import status as http_status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.auth import CurrentUser, get_current_user
 from app.core.filters import (
@@ -142,7 +143,13 @@ class GoatFilters:
 
 
 async def _get_goat(session: AsyncSession, goat_id: UUID) -> Goat:
-    goat = await session.get(Goat, goat_id)
+    # `dam`/`sire` are self-referential relationships — the mapper's default
+    # `lazy="selectin"` strategy doesn't kick in through `Session.get()`, so a
+    # goat with a linked parent would otherwise 500 the moment `to_detail` (or
+    # the history/pedigree builders) touch `goat.dam`/`goat.sire`.
+    goat = await session.get(
+        Goat, goat_id, options=[selectinload(Goat.dam), selectinload(Goat.sire)]
+    )
     if goat is None:
         raise HTTPException(
             status_code=http_status.HTTP_404_NOT_FOUND,

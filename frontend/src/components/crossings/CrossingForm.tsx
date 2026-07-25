@@ -7,7 +7,7 @@ import { GoatPicker } from "@/components/goats/GoatPicker";
 import { useToast } from "@/components/providers/ToastProvider";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
-import { Modal } from "@/components/ui/Modal";
+import { Drawer } from "@/components/ui/Drawer";
 import { ApiError } from "@/lib/apiClient";
 import { formatDate, todayISO } from "@/lib/format";
 import { useCreateCrossing, useSettings, useUpdateCrossing } from "@/lib/queries";
@@ -102,7 +102,7 @@ export function CrossingForm({ open, onClose, crossing, dam, sire }: CrossingFor
   }
 
   return (
-    <Modal
+    <Drawer
       open={open}
       onClose={onClose}
       title={editing ? "Edit crossing" : "Record a crossing"}
@@ -189,6 +189,6 @@ export function CrossingForm({ open, onClose, crossing, dam, sire }: CrossingFor
           )}
         </Field>
       </form>
-    </Modal>
+    </Drawer>
   );
 }

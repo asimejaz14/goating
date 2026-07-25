@@ -69,13 +69,6 @@ function NodeCard({
   column: number;
   isRoot: boolean;
 }) {
-  const accent =
-    node.sex === "female"
-      ? "border-l-[#E294BA]"
-      : node.sex === "male"
-        ? "border-l-[#7FA6C8]"
-        : "border-l-border";
-
   const inner = (
     <>
       {/* The thumbnail is the first thing to go when space is tight — the tag
@@ -110,7 +103,7 @@ function NodeCard({
     "flex w-full min-w-0 items-center gap-2 rounded-md border border-l-4 px-2 py-1.5",
     node.is_placeholder
       ? "border-dashed border-border bg-muted/70 border-l-border"
-      : cn("border-border bg-surface shadow-sm transition-shadow hover:shadow-md", accent),
+      : "border-border border-l-border-strong bg-surface shadow-sm transition-shadow hover:shadow-md",
     isRoot && !node.is_placeholder && "ring-2 ring-primary",
   );
 

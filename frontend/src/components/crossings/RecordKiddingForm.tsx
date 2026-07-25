@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/providers/ToastProvider";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
-import { Modal } from "@/components/ui/Modal";
+import { Drawer } from "@/components/ui/Drawer";
 import { ApiError } from "@/lib/apiClient";
 import { formatDate, plural, todayISO } from "@/lib/format";
 import { useRecordKidding } from "@/lib/queries";
@@ -80,7 +80,7 @@ export function RecordKiddingForm({
   }
 
   return (
-    <Modal
+    <Drawer
       open={open}
       onClose={onClose}
       title="Record the kidding"
@@ -166,6 +166,6 @@ export function RecordKiddingForm({
           )}
         </Field>
       </form>
-    </Modal>
+    </Drawer>
   );
 }

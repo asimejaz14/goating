@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/providers/ToastProvider";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
-import { Modal } from "@/components/ui/Modal";
+import { Drawer } from "@/components/ui/Drawer";
 import { ApiError } from "@/lib/apiClient";
 import { useLinkParents } from "@/lib/queries";
 import type { GoatDetail } from "@/lib/types";
@@ -55,7 +55,7 @@ export function LinkParentsDialog({
   }
 
   return (
-    <Modal
+    <Drawer
       open={open}
       onClose={onClose}
       title="Link parents"
@@ -114,6 +114,6 @@ export function LinkParentsDialog({
           )}
         </Field>
       </div>
-    </Modal>
+    </Drawer>
   );
 }

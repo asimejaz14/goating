@@ -9,7 +9,7 @@ import { BalanceCard } from "@/components/expenses/BalanceCard";
 import { ExpenseForm } from "@/components/expenses/ExpenseForm";
 import { useToast } from "@/components/providers/ToastProvider";
 import { Badge } from "@/components/ui/Badge";
-import { Button, IconButton } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, NoResults } from "@/components/ui/EmptyState";
 import { FilterBar, type ActiveChip } from "@/components/ui/FilterBar";
@@ -22,8 +22,10 @@ import {
 } from "@/components/ui/FilterControls";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pagination } from "@/components/ui/Pagination";
-import { Skeleton, SkeletonRows } from "@/components/ui/Skeleton";
+import { RowMenu } from "@/components/ui/RowMenu";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { SectionCard, Card } from "@/components/ui/Card";
+import { Table, TableBody, TableHead, TableSkeletonRows, Td, Th, Tr } from "@/components/ui/Table";
 import { ApiError } from "@/lib/apiClient";
 import { cn } from "@/lib/cn";
 import { formatDate, formatMoney, formatMonth } from "@/lib/format";
@@ -262,6 +264,14 @@ export default function ExpensesPage() {
           chips={chips}
           searchPlaceholder="Search expense name or notes…"
           sort={<SortSelect filters={filters} options={SORT_OPTIONS} defaultValue="expense_date:desc" />}
+          more={
+            <>
+              <FilterDate filters={filters} filterKey="date_from" label="Spent after" />
+              <FilterDate filters={filters} filterKey="date_to" label="Spent before" />
+              <FilterNumber filters={filters} filterKey="min_amount" label={`Min (${symbol})`} />
+              <FilterNumber filters={filters} filterKey="max_amount" label={`Max (${symbol})`} />
+            </>
+          }
         >
           <FilterMonth filters={filters} filterKey="month" label="Month" />
           <FilterSelect
@@ -281,10 +291,6 @@ export default function ExpensesPage() {
             anyLabel="All categories"
             options={(categories ?? []).map((entry) => ({ value: entry, label: entry }))}
           />
-          <FilterDate filters={filters} filterKey="date_from" label="Spent after" />
-          <FilterDate filters={filters} filterKey="date_to" label="Spent before" />
-          <FilterNumber filters={filters} filterKey="min_amount" label={`Min (${symbol})`} />
-          <FilterNumber filters={filters} filterKey="max_amount" label={`Max (${symbol})`} />
         </FilterBar>
       </div>
 
@@ -320,15 +326,25 @@ export default function ExpensesPage() {
       )}
 
       <div className="mt-4">
-        {isPending ? (
-          <Card>
-            <SkeletonRows count={8} />
-          </Card>
-        ) : isError ? (
+        {isError ? (
           <ErrorState
             message={error instanceof Error ? error.message : "The ledger did not load."}
             onRetry={() => refetch()}
           />
+        ) : isPending ? (
+          <Table>
+            <TableHead>
+              <Th>Expense</Th>
+              <Th className="hidden sm:table-cell">Date</Th>
+              <Th className="hidden sm:table-cell">Paid by</Th>
+              <Th className="hidden md:table-cell">Category</Th>
+              <Th align="right">Amount</Th>
+              <Th className="w-px" />
+            </TableHead>
+            <TableBody>
+              <TableSkeletonRows columns={6} rows={PAGE_SIZE} />
+            </TableBody>
+          </Table>
         ) : data.items.length === 0 ? (
           chips.length ? (
             <NoResults onClear={filters.clearAll} />
@@ -347,72 +363,100 @@ export default function ExpensesPage() {
           )
         ) : (
           <>
-            <Card className="!p-0">
-              <ul className="divide-y divide-border">
+            <Table>
+              <TableHead>
+                <Th>Expense</Th>
+                <Th className="hidden sm:table-cell">Date</Th>
+                <Th className="hidden sm:table-cell">Paid by</Th>
+                <Th className="hidden md:table-cell">Category</Th>
+                <Th align="right">Amount</Th>
+                <Th className="w-px" />
+              </TableHead>
+              <TableBody>
                 {data.items.map((expense) => (
-                  <li
-                    key={expense.id}
-                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/70"
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                      <Receipt className="h-[18px] w-[18px]" />
-                    </span>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-semibold text-foreground">
-                        {expense.name}
-                      </p>
-                      <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-faint-foreground">
-                        <span>{formatDate(expense.expense_date)}</span>
-                        <span aria-hidden>·</span>
-                        <span>{expense.payer_name ?? "Unknown"} paid</span>
-                        {expense.goat_id && expense.goat_tag && (
-                          <>
+                  <Tr key={expense.id}>
+                    <Td>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground sm:flex">
+                          <Receipt className="h-[18px] w-[18px]" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-[13.5px] font-semibold text-foreground">
+                            {expense.name}
+                          </p>
+                          {/* Date and Paid-by have their own columns from `sm` up —
+                              below that they collapse into one muted line here,
+                              since a ledger entry with no date is meaningless. */}
+                          <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-faint-foreground sm:hidden">
+                            <span>{formatDate(expense.expense_date)}</span>
                             <span aria-hidden>·</span>
+                            <span>{expense.payer_name ?? "Unknown"}</span>
+                            {expense.goat_id && expense.goat_tag && (
+                              <>
+                                <span aria-hidden>·</span>
+                                <Link
+                                  href={`/goats/${expense.goat_id}`}
+                                  className="tnum font-semibold text-primary underline-offset-2 hover:underline"
+                                >
+                                  {expense.goat_tag}
+                                </Link>
+                              </>
+                            )}
+                          </p>
+                          {expense.goat_id && expense.goat_tag && (
                             <Link
                               href={`/goats/${expense.goat_id}`}
-                              className="tnum font-semibold text-primary underline-offset-2 hover:underline"
+                              className="tnum hidden truncate text-xs font-semibold text-primary underline-offset-2 hover:underline sm:inline-block"
                             >
                               {expense.goat_tag}
                             </Link>
-                          </>
-                        )}
-                      </p>
-                    </div>
-
-                    {expense.category && (
-                      <Badge tone="neutral" className="hidden sm:inline-flex">
-                        {expense.category}
-                      </Badge>
-                    )}
-
-                    <span className="tnum shrink-0 text-[15px] font-bold text-foreground">
+                          )}
+                        </div>
+                      </div>
+                    </Td>
+                    <Td className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
+                      {formatDate(expense.expense_date)}
+                    </Td>
+                    <Td className="hidden text-muted-foreground sm:table-cell">
+                      {expense.payer_name ?? "Unknown"}
+                    </Td>
+                    <Td className="hidden md:table-cell">
+                      {expense.category ? (
+                        <Badge tone="neutral">{expense.category}</Badge>
+                      ) : (
+                        <span className="text-faint-foreground">—</span>
+                      )}
+                    </Td>
+                    <Td className="tnum font-semibold" align="right">
                       {formatMoney(expense.amount, symbol)}
-                    </span>
-
-                    <div className="flex shrink-0 items-center">
-                      <IconButton
-                        label={`Edit ${expense.name}`}
-                        className="h-9 w-9"
-                        onClick={() => {
-                          setEditing(expense);
-                          setFormOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </IconButton>
-                      <IconButton
-                        label={`Delete ${expense.name}`}
-                        className="h-9 w-9 hover:text-danger"
-                        onClick={() => setDeleting(expense)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </IconButton>
-                    </div>
-                  </li>
+                    </Td>
+                    <Td className="!px-2">
+                      <div className="flex items-center justify-end">
+                        <RowMenu
+                          label={`Actions for ${expense.name}`}
+                          items={[
+                            {
+                              label: "Edit",
+                              icon: Pencil,
+                              onClick: () => {
+                                setEditing(expense);
+                                setFormOpen(true);
+                              },
+                            },
+                            {
+                              label: "Delete",
+                              icon: Trash2,
+                              danger: true,
+                              onClick: () => setDeleting(expense),
+                            },
+                          ]}
+                        />
+                      </div>
+                    </Td>
+                  </Tr>
                 ))}
-              </ul>
-            </Card>
+              </TableBody>
+            </Table>
             <Pagination
               page={data.page}
               pageSize={data.page_size}

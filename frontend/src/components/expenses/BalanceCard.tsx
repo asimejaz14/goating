@@ -46,7 +46,7 @@ export function BalanceCard({
           <span
             className={cn(
               "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
-              balance.settled ? "bg-primary-soft text-primary" : "bg-muted text-muted-foreground",
+              balance.settled ? "bg-success-soft text-success-soft-foreground" : "bg-muted text-muted-foreground",
             )}
           >
             {balance.settled ? (
@@ -94,7 +94,7 @@ export function BalanceCard({
                 <span
                   className={cn(
                     "tnum shrink-0 text-sm font-bold",
-                    net > 0 ? "text-primary" : net < 0 ? "text-danger" : "text-faint-foreground",
+                    net > 0 ? "text-success" : net < 0 ? "text-danger" : "text-faint-foreground",
                   )}
                 >
                   {net > 0 ? "+" : ""}

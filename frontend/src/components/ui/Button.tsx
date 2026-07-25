@@ -20,8 +20,8 @@ const VARIANTS: Record<Variant, string> = {
 
 const SIZES: Record<Size, string> = {
   sm: "h-8 gap-1.5 rounded-md px-2.5 text-[13px]",
-  md: "h-10 gap-2 rounded-md px-3.5 text-sm",
-  lg: "h-11 gap-2 rounded-lg px-5 text-[15px]",
+  md: "h-9 gap-2 rounded-md px-3.5 text-sm",
+  lg: "h-10 gap-2 rounded-md px-4 text-sm",
 };
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -42,7 +42,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={props.type ?? "button"}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex select-none items-center justify-center font-medium",
+        "inline-flex select-none items-center justify-center whitespace-nowrap font-medium",
         "transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-soft",
         "active:scale-[0.985] disabled:pointer-events-none disabled:opacity-50",
         VARIANTS[variant],

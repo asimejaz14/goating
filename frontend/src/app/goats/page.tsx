@@ -1,11 +1,10 @@
 "use client";
 
-import { Plus, Users } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 import { useState } from "react";
 
-import { GoatCard } from "@/components/goats/GoatCard";
 import { GoatForm } from "@/components/goats/GoatForm";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { AcquisitionBadge, Badge, SexBadge, StatusBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState, ErrorState, NoResults } from "@/components/ui/EmptyState";
 import { FilterBar, type ActiveChip } from "@/components/ui/FilterBar";
@@ -16,11 +15,15 @@ import {
   FilterSelect,
   SortSelect,
 } from "@/components/ui/FilterControls";
+import { GoatIcon } from "@/components/ui/icons";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Pagination } from "@/components/ui/Pagination";
-import { SkeletonCardGrid } from "@/components/ui/Skeleton";
+import { Table, TableBody, TableHead, TableSkeletonRows, Td, Th, Tr } from "@/components/ui/Table";
+import { GoatPhoto } from "@/components/ui/GoatPhoto";
+import { formatAge, plural, titleCase } from "@/lib/format";
 import { useBreeds, useGoats } from "@/lib/queries";
-import { titleCase } from "@/lib/format";
 import { toQueryParams, useFilters } from "@/lib/useFilters";
+import { useRouter } from "next/navigation";
 
 const PAGE_SIZE = 10;
 
@@ -40,6 +43,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function GoatsPage() {
+  const router = useRouter();
   const filters = useFilters({ status: ["active"] });
   const { data: breeds } = useBreeds();
   const [formOpen, setFormOpen] = useState(false);
@@ -60,10 +64,7 @@ export default function GoatsPage() {
         "dob_to",
         "age_min_months",
         "age_max_months",
-        "has_photo",
         "has_parents",
-        "dam_id",
-        "sire_id",
       ],
       list: ["status"],
     }),
@@ -101,11 +102,6 @@ export default function GoatsPage() {
       key: "has_parents",
       label: filters.get("has_parents") === "false" ? "Missing parents" : "Parents linked",
     });
-  if (filters.get("has_photo"))
-    chips.push({
-      key: "has_photo",
-      label: filters.get("has_photo") === "true" ? "Has photo" : "No photo",
-    });
   if (filters.get("dob_from")) chips.push({ key: "dob_from", label: `Born from ${filters.get("dob_from")}` });
   if (filters.get("dob_to")) chips.push({ key: "dob_to", label: `Born to ${filters.get("dob_to")}` });
   if (filters.get("age_min_months"))
@@ -114,69 +110,6 @@ export default function GoatsPage() {
     chips.push({ key: "age_max_months", label: `up to ${filters.get("age_max_months")} mo` });
 
   const hasFilters = chips.length > 0;
-
-  const controls = (
-    <>
-      <FilterChipGroup
-        filters={filters}
-        filterKey="status"
-        label="Status"
-        options={STATUS_OPTIONS}
-        defaults={["active"]}
-      />
-      <FilterSelect
-        filters={filters}
-        filterKey="breed_id"
-        label="Breed"
-        anyLabel="All breeds"
-        options={(breeds ?? []).map((breed) => ({ value: breed.id, label: breed.name }))}
-      />
-      <FilterSelect
-        filters={filters}
-        filterKey="sex"
-        label="Sex"
-        anyLabel="Does and bucks"
-        options={[
-          { value: "female", label: "Does" },
-          { value: "male", label: "Bucks" },
-        ]}
-      />
-      <FilterSelect
-        filters={filters}
-        filterKey="acquisition_type"
-        label="Origin"
-        anyLabel="Any origin"
-        options={[
-          { value: "bred", label: "Born here" },
-          { value: "purchased", label: "Purchased" },
-        ]}
-      />
-      <FilterSelect
-        filters={filters}
-        filterKey="is_pregnant"
-        label="Pregnancy"
-        anyLabel="Any"
-        options={[
-          { value: "true", label: "Expecting now" },
-          { value: "false", label: "Not expecting" },
-        ]}
-      />
-      <FilterSelect
-        filters={filters}
-        filterKey="has_parents"
-        label="Pedigree"
-        anyLabel="Any"
-        options={[
-          { value: "false", label: "Missing a parent" },
-          { value: "true", label: "Both parents linked" },
-        ]}
-      />
-      <FilterNumber filters={filters} filterKey="age_min_months" label="Min age (months)" />
-      <FilterNumber filters={filters} filterKey="age_max_months" label="Max age (months)" />
-      <FilterDate filters={filters} filterKey="dob_from" label="Born after" />
-      <FilterDate filters={filters} filterKey="dob_to" label="Born before" />
-    </>
-  );
 
   return (
     <>
@@ -198,24 +131,101 @@ export default function GoatsPage() {
         chips={chips}
         searchPlaceholder="Search tag number or name…"
         sort={<SortSelect filters={filters} options={SORT_OPTIONS} defaultValue="tag_number:asc" />}
+        more={
+          <>
+            <FilterSelect
+              filters={filters}
+              filterKey="acquisition_type"
+              label="Origin"
+              anyLabel="Any origin"
+              options={[
+                { value: "bred", label: "Born here" },
+                { value: "purchased", label: "Purchased" },
+              ]}
+            />
+            <FilterSelect
+              filters={filters}
+              filterKey="is_pregnant"
+              label="Pregnancy"
+              anyLabel="Any"
+              options={[
+                { value: "true", label: "Expecting now" },
+                { value: "false", label: "Not expecting" },
+              ]}
+            />
+            <FilterSelect
+              filters={filters}
+              filterKey="has_parents"
+              label="Pedigree"
+              anyLabel="Any"
+              options={[
+                { value: "false", label: "Missing a parent" },
+                { value: "true", label: "Both parents linked" },
+              ]}
+            />
+            <FilterNumber filters={filters} filterKey="age_min_months" label="Min age (mo)" />
+            <FilterNumber filters={filters} filterKey="age_max_months" label="Max age (mo)" />
+            <FilterDate filters={filters} filterKey="dob_from" label="Born after" />
+            <FilterDate filters={filters} filterKey="dob_to" label="Born before" />
+          </>
+        }
       >
-        {controls}
+        <FilterChipGroup
+          filters={filters}
+          filterKey="status"
+          label="Status"
+          options={STATUS_OPTIONS}
+          defaults={["active"]}
+        />
+        <FilterSelect
+          filters={filters}
+          filterKey="breed_id"
+          label="Breed"
+          anyLabel="All breeds"
+          options={(breeds ?? []).map((breed) => ({ value: breed.id, label: breed.name }))}
+        />
+        <FilterSelect
+          filters={filters}
+          filterKey="sex"
+          label="Sex"
+          anyLabel="All"
+          options={[
+            { value: "female", label: "Does" },
+            { value: "male", label: "Bucks" },
+          ]}
+        />
       </FilterBar>
 
       <div className="mt-4">
-        {isPending ? (
-          <SkeletonCardGrid count={8} />
-        ) : isError ? (
+        {isError ? (
           <ErrorState
             message={error instanceof Error ? error.message : "The herd list did not load."}
             onRetry={() => refetch()}
           />
+        ) : isPending ? (
+          <Table>
+            <TableHead>
+              <Th>Goat</Th>
+              <Th className="hidden sm:table-cell">Sex</Th>
+              <Th className="hidden md:table-cell">Breed</Th>
+              <Th>Age</Th>
+              <Th>Status</Th>
+              <Th className="hidden lg:table-cell" align="right">
+                Kids
+              </Th>
+              <Th className="hidden lg:table-cell">Origin</Th>
+              <Th className="w-9" />
+            </TableHead>
+            <TableBody>
+              <TableSkeletonRows columns={8} rows={PAGE_SIZE} />
+            </TableBody>
+          </Table>
         ) : data.items.length === 0 ? (
           hasFilters ? (
             <NoResults onClear={filters.clearAll} />
           ) : (
             <EmptyState
-              icon={Users}
+              icon={GoatIcon}
               title="No goats yet"
               message="Add your first goat and the portal takes it from there — tag numbers, pedigree and history all build themselves as you go."
               action={
@@ -228,11 +238,63 @@ export default function GoatsPage() {
           )
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {data.items.map((goat, index) => (
-                <GoatCard key={goat.id} goat={goat} index={index} />
-              ))}
-            </div>
+            <Table>
+              <TableHead>
+                <Th>Goat</Th>
+                <Th className="hidden sm:table-cell">Sex</Th>
+                <Th className="hidden md:table-cell">Breed</Th>
+                <Th>Age</Th>
+                <Th>Status</Th>
+                <Th className="hidden lg:table-cell" align="right">
+                  Kids
+                </Th>
+                <Th className="hidden lg:table-cell">Origin</Th>
+                <Th className="w-9" />
+              </TableHead>
+              <TableBody>
+                {data.items.map((goat) => (
+                  <Tr key={goat.id} onClick={() => router.push(`/goats/${goat.id}`)}>
+                    <Td>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <GoatPhoto src={goat.photo_url} alt="" size={32} className="hidden sm:block" />
+                        <div className="min-w-0">
+                          <p className="tnum truncate text-[13.5px] font-semibold text-foreground">
+                            {goat.tag_number}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {goat.name || goat.breed_name || "Unnamed"}
+                          </p>
+                        </div>
+                      </div>
+                    </Td>
+                    <Td className="hidden sm:table-cell">
+                      <SexBadge sex={goat.sex} />
+                    </Td>
+                    <Td className="hidden md:table-cell text-muted-foreground">
+                      {goat.breed_name ?? "—"}
+                    </Td>
+                    <Td className="whitespace-nowrap text-muted-foreground">
+                      {formatAge(goat.age_months)}
+                    </Td>
+                    <Td>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <StatusBadge status={goat.status} />
+                        {goat.is_pregnant && <Badge tone="warning">Expecting</Badge>}
+                      </div>
+                    </Td>
+                    <Td className="hidden lg:table-cell tnum" align="right">
+                      {goat.kids_count > 0 ? `${goat.kids_count} ${plural(goat.kids_count, "kid")}` : "—"}
+                    </Td>
+                    <Td className="hidden lg:table-cell">
+                      <AcquisitionBadge type={goat.acquisition_type} />
+                    </Td>
+                    <Td className="!px-2" align="center">
+                      <ChevronRight className="h-4 w-4 text-faint-foreground" />
+                    </Td>
+                  </Tr>
+                ))}
+              </TableBody>
+            </Table>
             <Pagination
               page={data.page}
               pageSize={data.page_size}

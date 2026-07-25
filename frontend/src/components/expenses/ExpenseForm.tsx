@@ -6,7 +6,7 @@ import { GoatPicker } from "@/components/goats/GoatPicker";
 import { useToast } from "@/components/providers/ToastProvider";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, MoneyInput, Select, Textarea } from "@/components/ui/Field";
-import { Modal } from "@/components/ui/Modal";
+import { Drawer } from "@/components/ui/Drawer";
 import { ApiError } from "@/lib/apiClient";
 import { todayISO } from "@/lib/format";
 import {
@@ -108,7 +108,7 @@ export function ExpenseForm({
   }
 
   return (
-    <Modal
+    <Drawer
       open={open}
       onClose={onClose}
       title={editing ? "Edit expense" : "Add an expense"}
@@ -235,6 +235,6 @@ export function ExpenseForm({
           )}
         </Field>
       </form>
-    </Modal>
+    </Drawer>
   );
 }

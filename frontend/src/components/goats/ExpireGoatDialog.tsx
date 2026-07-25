@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/providers/ToastProvider";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
-import { Modal } from "@/components/ui/Modal";
+import { Drawer } from "@/components/ui/Drawer";
 import { ApiError } from "@/lib/apiClient";
 import { todayISO } from "@/lib/format";
 import { useExpireGoat } from "@/lib/queries";
@@ -60,7 +60,7 @@ export function ExpireGoatDialog({
   }
 
   return (
-    <Modal
+    <Drawer
       open={open}
       onClose={onClose}
       title={`Mark ${goat.tag_number} as expired`}
@@ -107,6 +107,6 @@ export function ExpireGoatDialog({
           )}
         </Field>
       </form>
-    </Modal>
+    </Drawer>
   );
 }

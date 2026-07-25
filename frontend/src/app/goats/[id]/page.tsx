@@ -149,7 +149,7 @@ export default function GoatDetailPage() {
               </h1>
               <SexBadge sex={goat.sex} />
               {goat.status !== "active" && <StatusBadge status={goat.status} />}
-              {goat.is_pregnant && <Badge tone="primary">Expecting</Badge>}
+              {goat.is_pregnant && <Badge tone="warning">Expecting</Badge>}
             </div>
 
             {goat.name && (
@@ -246,9 +246,10 @@ export default function GoatDetailPage() {
           action={
             <Link
               href={`/pedigree?goat=${goat.id}`}
-              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="inline-flex items-center gap-0.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Full tree →
+              Full tree
+              <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           }
         >
@@ -321,7 +322,7 @@ export default function GoatDetailPage() {
 
                     {crossing.status === "pregnant" ? (
                       <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <Badge tone={crossing.is_overdue ? "danger" : "primary"}>
+                        <Badge tone={crossing.is_overdue ? "danger" : "warning"}>
                           <CalendarClock className="h-3.5 w-3.5" />
                           {formatCountdown(crossing.days_remaining)}
                         </Badge>
@@ -619,9 +620,10 @@ function ViewAll({ href, label = "View all" }: { href: string; label?: string })
   return (
     <Link
       href={href}
-      className="shrink-0 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+      className="inline-flex shrink-0 items-center gap-0.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
     >
-      {label} →
+      {label}
+      <ChevronRight className="h-3.5 w-3.5" />
     </Link>
   );
 }

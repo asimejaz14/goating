@@ -6,7 +6,7 @@ import { GoatPicker } from "@/components/goats/GoatPicker";
 import { useToast } from "@/components/providers/ToastProvider";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
-import { Modal } from "@/components/ui/Modal";
+import { Drawer } from "@/components/ui/Drawer";
 import { ApiError } from "@/lib/apiClient";
 import { todayISO } from "@/lib/format";
 import { useCreateWeight } from "@/lib/queries";
@@ -67,7 +67,7 @@ export function WeightForm({
   }
 
   return (
-    <Modal
+    <Drawer
       open={open}
       onClose={onClose}
       title="Record a weight"
@@ -141,6 +141,6 @@ export function WeightForm({
           )}
         </Field>
       </form>
-    </Modal>
+    </Drawer>
   );
 }

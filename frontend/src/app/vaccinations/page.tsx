@@ -14,8 +14,7 @@ import { FilterDate, FilterSelect, SortSelect } from "@/components/ui/FilterCont
 import { GoatPhoto } from "@/components/ui/GoatPhoto";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pagination } from "@/components/ui/Pagination";
-import { SkeletonRows } from "@/components/ui/Skeleton";
-import { Card } from "@/components/ui/Card";
+import { Table, TableBody, TableHead, TableSkeletonRows, Td, Th, Tr } from "@/components/ui/Table";
 import { ApiError } from "@/lib/apiClient";
 import { formatDate } from "@/lib/format";
 import { useDeleteVaccination, useVaccinations, useVaccineNames } from "@/lib/queries";
@@ -113,15 +112,24 @@ export default function VaccinationsPage() {
       </FilterBar>
 
       <div className="mt-4">
-        {isPending ? (
-          <Card>
-            <SkeletonRows count={8} />
-          </Card>
-        ) : isError ? (
+        {isError ? (
           <ErrorState
             message={error instanceof Error ? error.message : "The log did not load."}
             onRetry={() => refetch()}
           />
+        ) : isPending ? (
+          <Table>
+            <TableHead>
+              <Th>Goat</Th>
+              <Th>Vaccine</Th>
+              <Th className="hidden lg:table-cell">Notes</Th>
+              <Th>Date</Th>
+              <Th className="w-px" />
+            </TableHead>
+            <TableBody>
+              <TableSkeletonRows columns={5} rows={PAGE_SIZE} />
+            </TableBody>
+          </Table>
         ) : data.items.length === 0 ? (
           chips.length ? (
             <NoResults onClear={filters.clearAll} />
@@ -140,57 +148,68 @@ export default function VaccinationsPage() {
           )
         ) : (
           <>
-            <Card className="!p-0">
-              <ul className="divide-y divide-border">
+            <Table>
+              <TableHead>
+                <Th>Goat</Th>
+                <Th>Vaccine</Th>
+                <Th className="hidden lg:table-cell">Notes</Th>
+                <Th>Date</Th>
+                <Th className="w-px" />
+              </TableHead>
+              <TableBody>
                 {data.items.map((record) => (
-                  <li
-                    key={record.id}
-                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/70"
-                  >
-                    {record.goat ? (
-                      <Link
-                        href={`/goats/${record.goat.id}`}
-                        className="flex min-w-0 shrink-0 items-center gap-2"
-                      >
-                        <GoatPhoto
-                          src={record.goat.photo_url}
-                          alt=""
-                          size={36}
-                          rounded="rounded-md"
-                        />
-                        <span className="tnum hidden text-sm font-bold text-foreground sm:block">
-                          {record.goat.tag_number}
-                        </span>
-                      </Link>
-                    ) : (
-                      <span className="h-9 w-9 shrink-0 rounded-md bg-muted" />
-                    )}
-
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-semibold text-foreground">
+                  <Tr key={record.id}>
+                    <Td>
+                      {record.goat ? (
+                        <Link
+                          href={`/goats/${record.goat.id}`}
+                          className="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-70"
+                        >
+                          <GoatPhoto
+                            src={record.goat.photo_url}
+                            alt=""
+                            size={28}
+                            rounded="rounded-sm"
+                            className="hidden sm:block"
+                          />
+                          <span className="tnum truncate text-[13px] font-semibold text-foreground">
+                            {record.goat.tag_number}
+                          </span>
+                        </Link>
+                      ) : (
+                        <span className="text-faint-foreground">—</span>
+                      )}
+                    </Td>
+                    <Td>
+                      <p className="truncate text-[13.5px] font-semibold text-foreground">
                         {record.vaccine_name}
                       </p>
-                      <p className="truncate text-xs text-faint-foreground">
-                        <span className="tnum sm:hidden">
-                          {record.goat?.tag_number ?? "—"} ·{" "}
-                        </span>
-                        {formatDate(record.date_administered)}
-                        {record.dose ? ` · ${record.dose}` : ""}
-                        {record.notes ? ` · ${record.notes}` : ""}
-                      </p>
-                    </div>
-
-                    <IconButton
-                      label={`Delete ${record.vaccine_name} record`}
-                      className="shrink-0 hover:text-danger"
-                      onClick={() => setDeleting(record)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </IconButton>
-                  </li>
+                      {record.dose && (
+                        <p className="truncate text-xs text-faint-foreground">{record.dose}</p>
+                      )}
+                    </Td>
+                    <Td className="hidden max-w-xs truncate text-muted-foreground lg:table-cell">
+                      {record.notes || "—"}
+                    </Td>
+                    <Td className="whitespace-nowrap text-muted-foreground">
+                      {formatDate(record.date_administered)}
+                    </Td>
+                    <Td className="!px-2">
+                      <div className="flex items-center justify-end">
+                        <IconButton
+                          label={`Delete ${record.vaccine_name} record`}
+                          size="sm"
+                          className="hover:text-danger"
+                          onClick={() => setDeleting(record)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </IconButton>
+                      </div>
+                    </Td>
+                  </Tr>
                 ))}
-              </ul>
-            </Card>
+              </TableBody>
+            </Table>
             <Pagination
               page={data.page}
               pageSize={data.page_size}

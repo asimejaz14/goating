@@ -1,31 +1,29 @@
 "use client";
 
-import { Plus, Sparkles } from "lucide-react";
+import { CalendarClock, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-import { CrossingCard } from "@/components/crossings/CrossingCard";
 import { CrossingForm } from "@/components/crossings/CrossingForm";
 import { RecordKiddingForm } from "@/components/crossings/RecordKiddingForm";
 import { GoatForm } from "@/components/goats/GoatForm";
 import { useToast } from "@/components/providers/ToastProvider";
+import { Badge, CrossingBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, NoResults } from "@/components/ui/EmptyState";
 import { FilterBar, type ActiveChip } from "@/components/ui/FilterBar";
-import {
-  FilterChipGroup,
-  FilterDate,
-  FilterNumber,
-  SortSelect,
-} from "@/components/ui/FilterControls";
+import { FilterChipGroup, FilterDate, FilterNumber, SortSelect } from "@/components/ui/FilterControls";
+import { GoatPhoto } from "@/components/ui/GoatPhoto";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pagination } from "@/components/ui/Pagination";
-import { SkeletonCardGrid } from "@/components/ui/Skeleton";
+import { RowMenu } from "@/components/ui/RowMenu";
+import { Table, TableBody, TableHead, TableSkeletonRows, Td, Th, Tr } from "@/components/ui/Table";
 import { ApiError } from "@/lib/apiClient";
-import { titleCase } from "@/lib/format";
+import { formatCountdown, formatDate, plural, titleCase } from "@/lib/format";
 import { useCrossings, useDeleteCrossing } from "@/lib/queries";
 import type { Crossing } from "@/lib/types";
 import { toQueryParams, useFilters } from "@/lib/useFilters";
+import Link from "next/link";
 
 const PAGE_SIZE = 10;
 
@@ -92,10 +90,7 @@ export default function CrossingsPage() {
     chips.push({ key: "status", value, label: STATUS_LABELS[value] ?? titleCase(value) });
   }
   if (filters.get("due_within_days"))
-    chips.push({
-      key: "due_within_days",
-      label: `Due within ${filters.get("due_within_days")} days`,
-    });
+    chips.push({ key: "due_within_days", label: `Due within ${filters.get("due_within_days")} days` });
   if (filters.get("crossing_date_from"))
     chips.push({ key: "crossing_date_from", label: `Crossed from ${filters.get("crossing_date_from")}` });
   if (filters.get("crossing_date_to"))
@@ -109,6 +104,8 @@ export default function CrossingsPage() {
   if (filters.get("sire_id")) chips.push({ key: "sire_id", label: "One buck" });
   if (filters.get("goat_id")) chips.push({ key: "goat_id", label: "One goat" });
 
+  const hasFilters = chips.length > 0;
+
   async function onDelete() {
     if (!deleting) return;
     try {
@@ -116,9 +113,7 @@ export default function CrossingsPage() {
       toast.success("Crossing deleted.");
       setDeleting(null);
     } catch (caught) {
-      toast.error(
-        caught instanceof ApiError ? caught.message : "Could not delete this crossing.",
-      );
+      toast.error(caught instanceof ApiError ? caught.message : "Could not delete this crossing.");
     }
   }
 
@@ -149,35 +144,44 @@ export default function CrossingsPage() {
         chips={chips}
         searchPlaceholder="Search by tag number or notes…"
         sort={<SortSelect filters={filters} options={SORT_OPTIONS} defaultValue="crossing_date:desc" />}
+        more={
+          <>
+            <FilterNumber filters={filters} filterKey="due_within_days" label="Due within (days)" />
+            <FilterNumber filters={filters} filterKey="year" label="Year" />
+            <FilterDate filters={filters} filterKey="crossing_date_from" label="Crossed after" />
+            <FilterDate filters={filters} filterKey="crossing_date_to" label="Crossed before" />
+            <FilterDate filters={filters} filterKey="expected_kidding_from" label="Due after" />
+            <FilterDate filters={filters} filterKey="expected_kidding_to" label="Due before" />
+          </>
+        }
       >
-        <FilterChipGroup
-          filters={filters}
-          filterKey="status"
-          label="Status"
-          options={STATUS_OPTIONS}
-        />
-        <FilterNumber
-          filters={filters}
-          filterKey="due_within_days"
-          label="Due within (days)"
-        />
-        <FilterNumber filters={filters} filterKey="year" label="Year" />
-        <FilterDate filters={filters} filterKey="crossing_date_from" label="Crossed after" />
-        <FilterDate filters={filters} filterKey="crossing_date_to" label="Crossed before" />
-        <FilterDate filters={filters} filterKey="expected_kidding_from" label="Due after" />
-        <FilterDate filters={filters} filterKey="expected_kidding_to" label="Due before" />
+        <FilterChipGroup filters={filters} filterKey="status" label="Status" options={STATUS_OPTIONS} />
       </FilterBar>
 
       <div className="mt-4">
-        {isPending ? (
-          <SkeletonCardGrid count={6} />
-        ) : isError ? (
+        {isError ? (
           <ErrorState
             message={error instanceof Error ? error.message : "The crossings did not load."}
             onRetry={() => refetch()}
           />
+        ) : isPending ? (
+          <Table>
+            <TableHead>
+              <Th>Crossing</Th>
+              <Th className="hidden sm:table-cell">Crossed</Th>
+              <Th>Kidding</Th>
+              <Th>Status</Th>
+              <Th className="hidden lg:table-cell" align="right">
+                Kids
+              </Th>
+              <Th className="w-px" />
+            </TableHead>
+            <TableBody>
+              <TableSkeletonRows columns={6} rows={PAGE_SIZE} />
+            </TableBody>
+          </Table>
         ) : data.items.length === 0 ? (
-          chips.length ? (
+          hasFilters ? (
             <NoResults onClear={filters.clearAll} />
           ) : (
             <EmptyState
@@ -194,22 +198,97 @@ export default function CrossingsPage() {
           )
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {data.items.map((crossing, index) => (
-                <CrossingCard
-                  key={crossing.id}
-                  crossing={crossing}
-                  index={index}
-                  onRecordKidding={setKidding}
-                  onAddKid={setAddKidTo}
-                  onEdit={(item) => {
-                    setEditing(item);
-                    setFormOpen(true);
-                  }}
-                  onDelete={setDeleting}
-                />
-              ))}
-            </div>
+            <Table>
+              <TableHead>
+                <Th>Crossing</Th>
+                <Th className="hidden sm:table-cell">Crossed</Th>
+                <Th>Kidding</Th>
+                <Th>Status</Th>
+                <Th className="hidden lg:table-cell" align="right">
+                  Kids
+                </Th>
+                <Th className="w-px" />
+              </TableHead>
+              <TableBody>
+                {data.items.map((crossing) => {
+                  const kids = crossing.number_of_kids ?? 0;
+                  const missing = Math.max(0, kids - crossing.kids_registered);
+                  const pregnant = crossing.status === "pregnant";
+
+                  return (
+                    <Tr key={crossing.id}>
+                      <Td>
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <GoatCell goat={crossing.dam} fallback="Unknown doe" />
+                          <span className="shrink-0 text-xs text-faint-foreground">×</span>
+                          <GoatCell goat={crossing.sire} fallback="Unknown buck" />
+                        </div>
+                      </Td>
+                      <Td className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
+                        {formatDate(crossing.crossing_date)}
+                      </Td>
+                      <Td
+                        className={
+                          crossing.actual_kidding_date
+                            ? "whitespace-nowrap text-foreground"
+                            : "whitespace-nowrap text-muted-foreground"
+                        }
+                      >
+                        {formatDate(crossing.actual_kidding_date ?? crossing.expected_kidding_date)}
+                      </Td>
+                      <Td>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <CrossingBadge status={crossing.status} />
+                          {pregnant && (
+                            <Badge tone={crossing.is_overdue ? "danger" : "warning"}>
+                              <CalendarClock className="h-3.5 w-3.5" />
+                              {formatCountdown(crossing.days_remaining)}
+                            </Badge>
+                          )}
+                        </div>
+                      </Td>
+                      <Td className="hidden lg:table-cell tnum" align="right">
+                        {crossing.status === "kidded" && kids > 0 ? `${kids} ${plural(kids, "kid")}` : "—"}
+                      </Td>
+                      <Td className="!px-2">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {pregnant && (
+                            <Button size="sm" variant="secondary" onClick={() => setKidding(crossing)}>
+                              Record kidding
+                            </Button>
+                          )}
+                          {crossing.status === "kidded" && missing > 0 && (
+                            <Button size="sm" variant="secondary" onClick={() => setAddKidTo(crossing)}>
+                              <Plus className="h-4 w-4" />
+                              Register {missing}
+                            </Button>
+                          )}
+                          <RowMenu
+                            label="Crossing actions"
+                            items={[
+                              {
+                                label: "Edit",
+                                icon: Pencil,
+                                onClick: () => {
+                                  setEditing(crossing);
+                                  setFormOpen(true);
+                                },
+                              },
+                              {
+                                label: "Delete",
+                                icon: Trash2,
+                                danger: true,
+                                onClick: () => setDeleting(crossing),
+                              },
+                            ]}
+                          />
+                        </div>
+                      </Td>
+                    </Tr>
+                  );
+                })}
+              </TableBody>
+            </Table>
             <Pagination
               page={data.page}
               pageSize={data.page_size}
@@ -273,5 +352,20 @@ export default function CrossingsPage() {
         confirmLabel="Delete crossing"
       />
     </>
+  );
+}
+
+function GoatCell({ goat, fallback }: { goat: Crossing["dam"]; fallback: string }) {
+  if (!goat) {
+    return <span className="truncate text-[13px] text-faint-foreground">{fallback}</span>;
+  }
+  return (
+    <Link
+      href={`/goats/${goat.id}`}
+      className="flex min-w-0 items-center gap-1.5 rounded-md transition-opacity hover:opacity-70"
+    >
+      <GoatPhoto src={goat.photo_url} alt="" size={24} rounded="rounded-sm" className="hidden sm:block" />
+      <span className="tnum truncate text-[13px] font-semibold text-foreground">{goat.tag_number}</span>
+    </Link>
   );
 }

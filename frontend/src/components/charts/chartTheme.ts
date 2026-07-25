@@ -1,18 +1,19 @@
 /**
  * One place for every chart's colours and axis styling.
  *
- * Recharts takes plain colour strings rather than classes, but `var()` resolves
- * against the element's computed style inside SVG just as it does anywhere
- * else — so pointing these at the same CSS variables the rest of the UI uses
- * means the charts follow the light/dark switch for free, with no re-render.
+ * Recharts takes plain colour strings rather than classes, but `var()`
+ * resolves against the element's computed style inside SVG just as it does
+ * anywhere else — so pointing these at the same CSS variables the rest of the
+ * UI uses means the charts follow the light/dark switch for free.
  *
- * Multi-series charts step through one hue at decreasing opacity instead of
- * reaching for new colours, which is what keeps the whole portal at three.
+ * A multi-series chart steps blue -> sky -> a neutral slate rather than
+ * reaching for new hues, which is what keeps the palette disciplined.
  */
 
 export const CHART_COLORS = {
   primary: "hsl(var(--primary))",
-  danger: "hsl(var(--danger))",
+  accent: "hsl(var(--accent))",
+  success: "hsl(var(--success))",
   neutral: "hsl(var(--muted-foreground))",
   grid: "hsl(var(--border))",
   axis: "hsl(var(--faint-foreground))",
@@ -21,12 +22,11 @@ export const CHART_COLORS = {
 /** Cycled through for donut/bar series with an unknown number of slices. */
 export const SERIES_COLORS = [
   "hsl(var(--primary))",
-  "hsl(var(--primary) / 0.72)",
-  "hsl(var(--primary) / 0.5)",
+  "hsl(var(--accent))",
   "hsl(var(--muted-foreground) / 0.55)",
-  "hsl(var(--primary) / 0.32)",
-  "hsl(var(--muted-foreground) / 0.32)",
-  "hsl(var(--primary) / 0.2)",
+  "hsl(var(--primary) / 0.4)",
+  "hsl(var(--accent) / 0.5)",
+  "hsl(var(--muted-foreground) / 0.3)",
 ];
 
 export const GRID = {
@@ -42,9 +42,8 @@ export const TICK = {
 } as const;
 
 /**
- * Y-axis labels in a fixed 40px gutter, which four- and five-digit money
- * values overflow — they were being clipped to their last two digits. Anything
- * past a thousand collapses to `4.2k`, which fits and still reads.
+ * Y-axis labels sit in a fixed gutter that four- and five-digit money values
+ * overflow. Anything past a thousand collapses to `4.2k` so it fits.
  */
 export function compactTick(value: number): string {
   const magnitude = Math.abs(value);
