@@ -120,7 +120,7 @@ export default function ExpensesPage() {
   const trend = [...(months ?? [])]
     .reverse()
     .map((bucket) => ({
-      period: bucket.period,
+      period: bucket.month,
       label: bucket.label,
       value: Number(bucket.total),
     }));
@@ -181,14 +181,14 @@ export default function ExpensesPage() {
               <TrendBars data={trend} height={190} prefix={symbol} highlightLast />
               <ul className="mt-3 flex gap-2 overflow-x-auto pb-1">
                 {(months ?? []).map((bucket) => {
-                  const active = activeMonth === bucket.period;
+                  const active = activeMonth === bucket.month;
                   return (
-                    <li key={bucket.period} className="shrink-0">
+                    <li key={bucket.month} className="shrink-0">
                       <button
                         type="button"
                         aria-pressed={active}
                         onClick={() =>
-                          filters.setFilter("month", active ? undefined : bucket.period)
+                          filters.setFilter("month", active ? undefined : bucket.month)
                         }
                         className={cn(
                           "min-w-[7.5rem] rounded-lg px-3 py-2 text-left transition-all duration-150",

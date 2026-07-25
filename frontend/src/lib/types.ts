@@ -187,7 +187,8 @@ export interface Balance {
 }
 
 export interface MonthlyBucket {
-  period: string;
+  /** `YYYY-MM`. Named `month` server-side — not `period` like TrendPoint. */
+  month: string;
   label: string;
   total: string;
   count: number;

@@ -17,13 +17,16 @@ interface FieldProps {
 /**
  * Label + control + helper text, wired together for screen readers.
  *
- * Everything a `Field` wraps is exactly 40px tall, so a row of them lines up
- * on the baseline no matter which control types it mixes.
+ * Every control a `Field` wraps is exactly 40px tall, and the field itself is
+ * a full-height column that pushes the control to the bottom. That second part
+ * is what keeps a two-column row aligned: "Name" carries a one-line hint and
+ * "Breed" carries none, so without it the two inputs sit at visibly different
+ * heights — which is exactly how the goat form looked.
  */
 export function Field({ label, hint, error, required, className, children }: FieldProps) {
   const id = useId();
   return (
-    <div className={cn("w-full min-w-0", className)}>
+    <div className={cn("flex h-full w-full min-w-0 flex-col", className)}>
       <label htmlFor={id} className="field-label">
         {label}
         {required && (
@@ -32,13 +35,15 @@ export function Field({ label, hint, error, required, className, children }: Fie
           </span>
         )}
       </label>
-      {hint && <p className="-mt-1 mb-1.5 text-xs text-faint-foreground">{hint}</p>}
-      {children(id)}
-      {error && (
-        <p role="alert" className="mt-1.5 text-xs font-medium text-danger">
-          {error}
-        </p>
-      )}
+      {hint && <p className="-mt-1 mb-1.5 text-xs leading-snug text-faint-foreground">{hint}</p>}
+      <div className="mt-auto">
+        {children(id)}
+        {error && (
+          <p role="alert" className="mt-1.5 text-xs font-medium text-danger">
+            {error}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

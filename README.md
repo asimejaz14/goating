@@ -48,6 +48,8 @@ editor (Supabase dashboard → SQL Editor → New query):
 supabase/migrations/0001_init.sql        tables, enums, triggers
 supabase/migrations/0002_indexes_rls.sql indexes, tag allocation
 supabase/migrations/0003_seed.sql        breeds, storage bucket, portal users
+supabase/seed_demo.sql                   optional demo data (see below)
+supabase/seed_demo_remove.sql            takes the demo data back out
 ```
 
 `0003_seed.sql` seeds the three breeds (Makhi Cheeni `MC`, Teddy `TD`, Rajan
@@ -57,6 +59,22 @@ the `insert into users (...)` block at the bottom with real emails, names and
 passwords (whatever you leave there is what you type in at `/login`). To add
 a third partner later, add another row to that block and re-run the file —
 it upserts by email, so re-running is always safe.
+
+### 1b. Demo data (optional)
+
+To show the portal to someone before there are real records, run
+`supabase/seed_demo.sql`. It fills the herd with about seven months of
+plausible activity — 26 goats, 13 crossings with live countdowns, kids linked
+into a pedigree, vaccination/weight/health logs, and 135 expenses split
+between the two partners.
+
+Dates are relative to the day you run it, so it always looks current.
+Re-running is safe — it clears its own rows first.
+
+When you are ready for real data, run `supabase/seed_demo_remove.sql`. Every
+demo row has an id beginning `dddd`, which is how it removes all of it and
+nothing you entered yourself. Tag-number counters are handed back too, so your
+first real goat still gets `BGF-MC-01`.
 
 ### 2. Backend
 
