@@ -30,13 +30,16 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 -- ---------------------------------------------------------------------------
--- profiles — one row per portal user, mirrors auth.users
+-- users — a normal application table. There is no signup flow: partners are
+-- added by inserting a row (see 0003_seed.sql) and the API mints its own
+-- session tokens against `password_hash` — Supabase Auth is not involved.
 -- ---------------------------------------------------------------------------
-create table if not exists profiles (
-  id           uuid primary key references auth.users (id) on delete cascade,
-  display_name text        not null,
-  email        text        not null unique,
-  created_at   timestamptz not null default now()
+create table if not exists users (
+  id            uuid primary key default gen_random_uuid(),
+  email         text        not null unique,
+  display_name  text        not null,
+  password_hash text        not null,
+  created_at    timestamptz not null default now()
 );
 
 -- ---------------------------------------------------------------------------
@@ -82,7 +85,7 @@ create table if not exists goats (
   photo_url        text,                        -- null => placeholder image in UI
   notes            text,
 
-  created_by       uuid references profiles (id) on delete set null,
+  created_by       uuid references users (id) on delete set null,
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now(),
 
@@ -103,7 +106,7 @@ create table if not exists crossings (
   number_of_kids        integer,
   status                crossing_status not null default 'pregnant',
   notes                 text,
-  created_by            uuid references profiles (id) on delete set null,
+  created_by            uuid references users (id) on delete set null,
   created_at            timestamptz not null default now(),
   updated_at            timestamptz not null default now(),
 
@@ -128,7 +131,7 @@ create table if not exists vaccinations (
   date_administered date not null,
   dose             text,
   notes            text,
-  created_by       uuid references profiles (id) on delete set null,
+  created_by       uuid references users (id) on delete set null,
   created_at       timestamptz not null default now()
 );
 
@@ -141,7 +144,7 @@ create table if not exists weights (
   weight_kg   numeric(6, 2) not null,
   measured_on date not null,
   notes       text,
-  created_by  uuid references profiles (id) on delete set null,
+  created_by  uuid references users (id) on delete set null,
   created_at  timestamptz not null default now(),
 
   constraint weights_positive check (weight_kg > 0)
@@ -158,7 +161,7 @@ create table if not exists health_records (
   description text not null,
   medication  text,
   notes       text,
-  created_by  uuid references profiles (id) on delete set null,
+  created_by  uuid references users (id) on delete set null,
   created_at  timestamptz not null default now()
 );
 
@@ -170,11 +173,11 @@ create table if not exists expenses (
   expense_date date           not null,
   name         text           not null,
   amount       numeric(12, 2) not null,
-  paid_by      uuid           not null references profiles (id) on delete restrict,
+  paid_by      uuid           not null references users (id) on delete restrict,
   goat_id      uuid references goats (id) on delete set null,
   category     text,
   notes        text,
-  created_by   uuid references profiles (id) on delete set null,
+  created_by   uuid references users (id) on delete set null,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now(),
 
@@ -186,12 +189,12 @@ create table if not exists expenses (
 -- ---------------------------------------------------------------------------
 create table if not exists settlements (
   id         uuid primary key default gen_random_uuid(),
-  from_user  uuid           not null references profiles (id) on delete restrict,
-  to_user    uuid           not null references profiles (id) on delete restrict,
+  from_user  uuid           not null references users (id) on delete restrict,
+  to_user    uuid           not null references users (id) on delete restrict,
   amount     numeric(12, 2) not null,
   settled_on date           not null default current_date,
   note       text,
-  created_by uuid references profiles (id) on delete set null,
+  created_by uuid references users (id) on delete set null,
   created_at timestamptz not null default now(),
 
   constraint settlements_amount_positive check (amount > 0),

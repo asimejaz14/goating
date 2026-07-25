@@ -76,38 +76,10 @@ $$ language plpgsql;
 
 -- ---------------------------------------------------------------------------
 -- Row-level security.
--- Both partners are equal with unrestricted access, so every authenticated
--- user can read and write everything. The FastAPI layer is the primary
--- gatekeeper; these policies are defence in depth for direct client access.
+-- The FastAPI backend is the only thing that ever talks to these tables — it
+-- connects with the project's Postgres role directly (not through Supabase
+-- Auth/PostgREST), so there is no "authenticated" JWT for Postgres policies
+-- to check here. RLS on these tables would just be dead weight; the API is
+-- the real gatekeeper. (The `goat-photos` storage bucket below is the one
+-- thing the browser reaches directly, so it keeps real policies.)
 -- ---------------------------------------------------------------------------
-alter table profiles       enable row level security;
-alter table breeds         enable row level security;
-alter table goats          enable row level security;
-alter table crossings      enable row level security;
-alter table vaccinations   enable row level security;
-alter table weights        enable row level security;
-alter table health_records enable row level security;
-alter table expenses       enable row level security;
-alter table settlements    enable row level security;
-
-do $$
-declare
-  t text;
-begin
-  foreach t in array array[
-    'profiles', 'breeds', 'goats', 'crossings', 'vaccinations',
-    'weights', 'health_records', 'expenses', 'settlements'
-  ] loop
-    execute format('drop policy if exists %I on %I', t || '_authenticated_all', t);
-    execute format(
-      'create policy %I on %I for all to authenticated using (true) with check (true)',
-      t || '_authenticated_all', t
-    );
-  end loop;
-end $$;
-
--- Breeds are reference data: readable by anyone signed in, but only the
--- backend (service role) may add or change them.
-drop policy if exists breeds_authenticated_all on breeds;
-create policy breeds_read_authenticated on breeds
-  for select to authenticated using (true);

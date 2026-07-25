@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.config import settings
 from app.routers import (
+    auth,
     breeds,
     crossings,
     dashboard,
@@ -42,6 +43,7 @@ app.add_middleware(
 )
 
 for module in (
+    auth,
     dashboard,
     breeds,
     goats,

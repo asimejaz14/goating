@@ -16,11 +16,13 @@ class Settings(BaseSettings):
     #   postgresql+asyncpg://postgres.<ref>:<pw>@aws-0-<region>.pooler.supabase.com:5432/postgres
     database_url: str = ""
 
-    supabase_url: str = ""
-    supabase_anon_key: str = ""
-    # Either set the JWT secret (HS256 projects) or leave it blank and the
-    # backend will verify tokens against the project's JWKS endpoint.
-    supabase_jwt_secret: str = ""
+    # --- Auth -----------------------------------------------------------------
+    # The API signs its own session tokens — there is no external identity
+    # provider. Generate a real secret for anything beyond local dev, e.g.:
+    #   python -c "import secrets; print(secrets.token_urlsafe(48))"
+    jwt_secret: str = ""
+    # How long a signed-in session lasts before a partner has to log in again.
+    jwt_expire_days: int = 60
 
     # --- Farm rules ----------------------------------------------------------
     farm_prefix: str = "BGF"

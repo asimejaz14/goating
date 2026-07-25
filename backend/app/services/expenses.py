@@ -17,7 +17,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Expense, Profile, Settlement
+from app.models import Expense, Settlement, User
 from app.schemas import BalanceEntry, BalanceOut, PayerTotal
 
 CENT = Decimal("0.01")
@@ -115,7 +115,7 @@ async def load_balance(
 ) -> BalanceOut:
     """Gather the ledger totals and hand them to :func:`compute_balance`."""
     profiles = (
-        await session.execute(select(Profile).order_by(Profile.created_at, Profile.id))
+        await session.execute(select(User).order_by(User.created_at, User.id))
     ).scalars().all()
     participants = [(profile.id, profile.display_name) for profile in profiles]
 
@@ -155,10 +155,10 @@ async def payer_totals(
 ) -> list[PayerTotal]:
     """Per-payer totals for whatever filter the user currently has applied."""
     rows = await session.execute(
-        select(Expense.paid_by, Profile.display_name, func.sum(Expense.amount))
-        .join(Profile, Profile.id == Expense.paid_by)
+        select(Expense.paid_by, User.display_name, func.sum(Expense.amount))
+        .join(User, User.id == Expense.paid_by)
         .where(*conditions)
-        .group_by(Expense.paid_by, Profile.display_name)
+        .group_by(Expense.paid_by, User.display_name)
         .order_by(func.sum(Expense.amount).desc())
     )
     return [

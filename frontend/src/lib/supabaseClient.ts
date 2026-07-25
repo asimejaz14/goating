@@ -6,9 +6,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { PHOTO_BUCKET, requireSupabaseEnv } from "./env";
 
 /**
- * Supabase is used for exactly two things: signing in, and uploading goat
- * photos to Storage. Every other byte of data flows through the FastAPI
- * backend, which is the single place business rules live.
+ * Supabase is used for exactly one thing: uploading goat photos to Storage.
+ * Signing in and every other byte of data flows through the FastAPI backend,
+ * which is the single place business rules (and the real login) live.
  */
 let client: SupabaseClient | null = null;
 
@@ -18,12 +18,6 @@ export function getSupabase(): SupabaseClient {
     client = createBrowserClient(url, anonKey);
   }
   return client;
-}
-
-/** The signed-in user's access token, or null when nobody is signed in. */
-export async function getAccessToken(): Promise<string | null> {
-  const { data } = await getSupabase().auth.getSession();
-  return data.session?.access_token ?? null;
 }
 
 /**

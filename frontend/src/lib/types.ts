@@ -32,8 +32,8 @@ export interface Profile {
 
 export interface CurrentUser {
   id: string;
-  email: string | null;
-  display_name: string | null;
+  email: string;
+  display_name: string;
 }
 
 export interface GoatSummary {

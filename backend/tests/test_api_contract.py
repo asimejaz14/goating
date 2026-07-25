@@ -19,14 +19,15 @@ client = TestClient(app)
 
 
 def signed_token(**claims) -> str:
-    """Mint a token the way Supabase Auth would for a signed-in partner."""
+    """Mint a token the way POST /auth/login would for a signed-in partner."""
     payload = {
         "sub": str(uuid4()),
         "email": "asim@example.com",
+        "display_name": "Asim",
         "exp": int(time.time()) + 3600,
         **claims,
     }
-    return jwt.encode(payload, settings.supabase_jwt_secret, algorithm="HS256")
+    return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
 
 
 def auth(token: str | None = None) -> dict[str, str]:
@@ -86,11 +87,7 @@ def test_an_expired_session_is_rejected():
 def test_a_valid_token_identifies_the_signed_in_partner():
     """`/me` touches no database, so it proves the whole auth path works."""
     user_id = str(uuid4())
-    token = signed_token(
-        sub=user_id,
-        email="asim@example.com",
-        user_metadata={"display_name": "Asim"},
-    )
+    token = signed_token(sub=user_id, email="asim@example.com", display_name="Asim")
 
     response = client.get("/me", headers=auth(token))
 
@@ -104,12 +101,30 @@ def test_a_valid_token_identifies_the_signed_in_partner():
 
 def test_a_token_without_a_subject_is_rejected():
     malformed = jwt.encode(
-        {"exp": int(time.time()) + 3600},
-        settings.supabase_jwt_secret,
+        {"email": "asim@example.com", "exp": int(time.time()) + 3600},
+        settings.jwt_secret,
         algorithm="HS256",
     )
 
     assert client.get("/me", headers=auth(malformed)).status_code == 401
+
+
+def test_a_token_without_an_email_is_rejected():
+    malformed = jwt.encode(
+        {"sub": str(uuid4()), "exp": int(time.time()) + 3600},
+        settings.jwt_secret,
+        algorithm="HS256",
+    )
+
+    assert client.get("/me", headers=auth(malformed)).status_code == 401
+
+
+def test_login_route_is_reachable_without_a_token():
+    """The one data route that has to work before anyone is signed in."""
+    paths = app.openapi()["paths"]
+
+    assert "/auth/login" in paths
+    assert not paths["/auth/login"]["post"].get("security")
 
 
 def test_openapi_schema_generates():

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import CurrentUser, get_current_user
 from app.config import settings
 from app.database import get_session
-from app.models import Profile
+from app.models import User
 from app.schemas import DashboardOut, FarmSettingsOut, ProfileOut
 from app.services import dashboard as dashboard_service
 
@@ -45,7 +45,7 @@ async def list_profiles(
 ) -> list[ProfileOut]:
     """The portal's users — powers the payer picker and the split."""
     result = await session.execute(
-        select(Profile).order_by(Profile.created_at, Profile.id)
+        select(User).order_by(User.created_at, User.id)
     )
     return [ProfileOut.model_validate(row) for row in result.scalars().all()]
 

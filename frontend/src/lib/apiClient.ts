@@ -1,7 +1,7 @@
 "use client";
 
+import { getStoredToken } from "./authToken";
 import { API_URL } from "./env";
-import { getAccessToken } from "./supabaseClient";
 
 /** An error carrying the backend's human-readable `detail` message. */
 export class ApiError extends Error {
@@ -85,7 +85,7 @@ async function readError(response: Response): Promise<string> {
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, params, signal } = options;
-  const token = await getAccessToken();
+  const token = getStoredToken();
 
   const headers: Record<string, string> = { Accept: "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;

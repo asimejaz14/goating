@@ -23,9 +23,6 @@ export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:800
 );
 export const PHOTO_BUCKET = process.env.NEXT_PUBLIC_PHOTO_BUCKET ?? "goat-photos";
 
-/** True when Supabase credentials are present — checked before touching auth. */
-export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
-
 export function requireSupabaseEnv(): { url: string; anonKey: string } {
   return {
     url: required(SUPABASE_URL, "NEXT_PUBLIC_SUPABASE_URL"),

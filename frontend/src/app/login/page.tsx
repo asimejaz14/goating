@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 import { Lock, Mail } from "lucide-react";
 import { useState } from "react";
 
+import { useAuth } from "@/components/providers/AuthProvider";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Field";
 import { GoatPlaceholder } from "@/components/ui/GoatPhoto";
-import { getSupabase } from "@/lib/supabaseClient";
+import { ApiError } from "@/lib/apiClient";
 
 export default function LoginPage() {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,23 +22,14 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const { error: signInError } = await getSupabase().auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-      if (signInError) {
-        // Supabase's own wording ("Invalid login credentials") is fine, but the
-        // rest of its messages read like API errors — soften the common one.
-        setError(
-          signInError.message === "Invalid login credentials"
-            ? "That email and password do not match. Please try again."
-            : signInError.message,
-        );
-        return;
-      }
-      // AuthProvider notices the new session and routes to the dashboard.
-    } catch {
-      setError("Cannot reach Supabase right now. Check your connection.");
+      await signIn(email.trim(), password);
+      // AuthProvider now holds the new session and routes to the dashboard.
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Cannot reach the server right now. Check your connection.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -118,7 +111,7 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-4 text-center text-xs leading-relaxed text-ink-faint">
-          Accounts are created in Supabase by the farm owner.
+          Accounts are added by the farm owner directly in the database.
         </p>
       </motion.div>
     </div>

@@ -10,7 +10,7 @@ import os
 # auth tests exercise real signature verification; DATABASE_URL is deliberately
 # left unset so any route that reaches the database before checking auth fails
 # loudly instead of quietly passing.
-os.environ.setdefault("SUPABASE_JWT_SECRET", "test-secret-not-a-real-key")
+os.environ.setdefault("JWT_SECRET", "test-secret-not-a-real-key")
 
 from datetime import date  # noqa: E402
 from types import SimpleNamespace

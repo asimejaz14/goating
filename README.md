@@ -8,10 +8,11 @@ with 50/50 settle-up.
 |---|---|
 | Frontend | Next.js 16 (App Router, TypeScript), Tailwind, Framer Motion, TanStack Query, Recharts |
 | Backend | FastAPI, SQLAlchemy 2.0 async, Pydantic v2 |
-| Database | Supabase Postgres + Auth + Storage |
+| Database | Supabase Postgres + Storage |
 
-The Next.js app talks to the FastAPI backend for all data. It talks to Supabase
-directly for exactly two things: signing in, and uploading goat photos.
+The Next.js app talks to the FastAPI backend for all data, including signing
+in — the API mints its own session tokens. Supabase is used directly for
+exactly one thing: uploading goat photos to Storage.
 
 ---
 
@@ -45,15 +46,17 @@ editor (Supabase dashboard → SQL Editor → New query):
 
 ```
 supabase/migrations/0001_init.sql        tables, enums, triggers
-supabase/migrations/0002_indexes_rls.sql indexes, tag allocation, row-level security
-supabase/migrations/0003_seed.sql        breeds, storage bucket, new-user hook
+supabase/migrations/0002_indexes_rls.sql indexes, tag allocation
+supabase/migrations/0003_seed.sql        breeds, storage bucket, portal users
 ```
 
 `0003_seed.sql` seeds the three breeds (Makhi Cheeni `MC`, Teddy `TD`, Rajan
-Puri `RP`) and creates the `goat-photos` storage bucket.
-
-Then add the two users under **Authentication → Users**. A trigger creates each
-person's profile row automatically on first sign-up.
+Puri `RP`), creates the `goat-photos` storage bucket, and adds the portal's
+users. **There is no signup screen** — before running it the first time, edit
+the `insert into users (...)` block at the bottom with real emails, names and
+passwords (whatever you leave there is what you type in at `/login`). To add
+a third partner later, add another row to that block and re-run the file —
+it upserts by email, so re-running is always safe.
 
 ### 2. Backend
 
@@ -61,7 +64,7 @@ person's profile row automatically on first sign-up.
 cd backend
 python -m venv .venv
 .venv/bin/pip install -r requirements.txt
-cp .env.example .env        # then paste your Supabase values in
+cp .env.example .env        # paste your DATABASE_URL, generate a JWT_SECRET
 .venv/bin/uvicorn app.main:app --reload
 ```
 
@@ -72,7 +75,7 @@ API docs at http://localhost:8000/docs, liveness at `/healthz`.
 ```bash
 cd frontend
 npm install
-cp .env.local.example .env.local   # then paste your Supabase URL + anon key
+cp .env.local.example .env.local   # NEXT_PUBLIC_API_URL, and Supabase keys for photo upload
 npm run dev
 ```
 
@@ -87,9 +90,8 @@ Everything lives in `backend/.env` (see `.env.example` for the full list):
 | Variable | Default | Notes |
 |---|---|---|
 | `DATABASE_URL` | — | Supabase Postgres, `postgresql+asyncpg://…` |
-| `SUPABASE_URL` | — | Project URL |
-| `SUPABASE_ANON_KEY` | — | Public key, safe for the browser |
-| `SUPABASE_JWT_SECRET` | — | Legacy HS256 projects only; blank ⇒ verify via JWKS |
+| `JWT_SECRET` | — | Signs the API's own session tokens; never share it |
+| `JWT_EXPIRE_DAYS` | `60` | How long a login lasts before signing in again |
 | `FARM_PREFIX` | `BGF` | The first segment of every tag number |
 | `GESTATION_DAYS` | `150` | Drives the expected kidding date |
 | `CURRENCY_CODE` / `CURRENCY_SYMBOL` | `PKR` / `₨` | |
@@ -112,7 +114,8 @@ npm run build
 
 The backend suite covers tag format and per-breed sequencing, gestation and
 countdown maths, the cent-exact 50/50 split and settle-up, pedigree assembly and
-cycle protection, the shared pagination and filter contract, and the auth gate.
+cycle protection, the shared pagination and filter contract, and the auth gate
+(including that `/auth/login` is the one data route reachable without a token).
 The frontend build runs without any Supabase keys present — pages that need data
 render their empty and setup states.
 
@@ -132,8 +135,9 @@ the same envelope:
 Expense lists add a `summary` block whose totals cover the **whole filtered
 set**, not just the current page.
 
-Beyond CRUD: `GET /dashboard/summary`, `GET /goats/{id}/history` (the 360 view
-in one request), `GET /goats/{id}/pedigree`, `POST /goats/{id}/link-parents`,
+Beyond CRUD: `POST /auth/login` (the only unauthenticated data route),
+`GET /dashboard/summary`, `GET /goats/{id}/history` (the 360 view in one
+request), `GET /goats/{id}/pedigree`, `POST /goats/{id}/link-parents`,
 `POST /goats/{id}/expire`, `POST /crossings/{id}/kidding`,
 `GET /expenses/balance`, `GET /expenses/monthly`, `POST /expenses/settle`.
 

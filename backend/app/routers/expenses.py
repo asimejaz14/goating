@@ -22,7 +22,7 @@ from app.core.filters import (
 )
 from app.core.pagination import PageParams, build_page, paginate
 from app.database import get_session
-from app.models import Expense, Goat, Profile, Settlement
+from app.models import Expense, Goat, Settlement, User
 from app.schemas import (
     BalanceOut,
     ExpenseCreate,
@@ -149,12 +149,12 @@ async def monthly_history(
             select(
                 month_column,
                 Expense.paid_by,
-                Profile.display_name,
+                User.display_name,
                 func.sum(Expense.amount),
             )
-            .join(Profile, Profile.id == Expense.paid_by)
+            .join(User, User.id == Expense.paid_by)
             .where(month_column.in_(wanted))
-            .group_by(month_column, Expense.paid_by, Profile.display_name)
+            .group_by(month_column, Expense.paid_by, User.display_name)
         )
     ).all()
 
@@ -290,7 +290,7 @@ async def create_expense(
     data = payload.model_dump()
     data["paid_by"] = data.get("paid_by") or user.id
 
-    if await session.get(Profile, data["paid_by"]) is None:
+    if await session.get(User, data["paid_by"]) is None:
         raise HTTPException(
             status_code=http_status.HTTP_400_BAD_REQUEST,
             detail="That payer is not a portal user.",
@@ -325,7 +325,7 @@ async def update_expense(
     expense = await _get_expense(session, expense_id)
     changes = payload.model_dump(exclude_unset=True)
 
-    if changes.get("paid_by") and await session.get(Profile, changes["paid_by"]) is None:
+    if changes.get("paid_by") and await session.get(User, changes["paid_by"]) is None:
         raise HTTPException(
             status_code=http_status.HTTP_400_BAD_REQUEST,
             detail="That payer is not a portal user.",

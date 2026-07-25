@@ -17,7 +17,7 @@ first-class requirement, not an afterthought.
 ---
 
 ## Locked-in decisions
-- **Auth:** Supabase Auth, 2 users (owner + friend), identical unrestricted roles; open to more later.
+- **Auth:** self-issued sessions, not Supabase Auth. Users are rows in a `users` table, added directly in the database (a SQL seed file) instead of a signup flow; the API checks a bcrypt password hash and mints its own 60-day JWT. 2 users (owner + friend) today, identical unrestricted roles; adding a third partner is just another seed row.
 - **Design:** "Warm farm soft-UI" — earthy greens/creams/browns, soft rounded cards, gentle shadows (keeps the neumorphic softness but stays high-contrast and readable on a phone in daylight). Flat icons (lucide), Framer-Motion transitions. Fully responsive.
 - **Goat ID:** `BGF-<BREED-INITIALS>-NN`, uppercase, **counter restarts per breed**, zero-padded (`BGF-MC-01`, `BGF-MC-02`). `BGF` is a configurable farm prefix; breed codes stored per breed (MC/TD/RP). Auto-generated and locked (not hand-editable).
 - **Breeds:** seeded in DB — Makhi Cheeni (MC), Teddy (TD), Rajan Puri (RP). Only Makhi Cheeni goats exist today.
@@ -36,9 +36,9 @@ first-class requirement, not an afterthought.
 ---
 
 ## Architecture
-- **Next.js frontend** → calls the **FastAPI backend** for all data. Talks to Supabase directly only for (a) Auth login/session and (b) Storage upload of goat photos.
+- **Next.js frontend** → calls the **FastAPI backend** for all data, including login. Talks to Supabase directly only for Storage upload of goat photos.
 - **FastAPI backend** → the single API layer. Connects to Supabase Postgres, verifies the Supabase JWT on every request, owns all business logic (ID generation, pedigree, settle-up, aggregation, **filtering & pagination**).
-- **Supabase** → Postgres + Auth + Storage bucket (`goat-photos`).
+- **Supabase** → Postgres + Storage bucket (`goat-photos`). Not used for Auth.
 
 ### Tech stack
 - **Frontend:** Next.js 14 (App Router, TypeScript), Tailwind CSS, Framer Motion, TanStack Query (caching/pagination state), Recharts, lucide-react, `@supabase/supabase-js`, thin fetch-based API client.
@@ -48,15 +48,15 @@ first-class requirement, not an afterthought.
 ---
 
 ## Data model (Supabase Postgres)
-- **profiles** — `id` (uuid → auth.users), `display_name`, `email`, `created_at`. Seeded with the 2 partners.
+- **users** — `id`, `email`, `display_name`, `password_hash` (bcrypt), `created_at`. Seeded directly with the 2 partners; adding one more is another seed row, not a signup.
 - **breeds** — `id`, `name` (unique), `code` (unique initials, e.g. MC), `next_seq` (per-breed ID counter), `description`.
 - **goats** — `id`, `tag_number` (unique, `BGF-MC-01`), `name?`, `breed_id`, `sex` (male/female), `date_of_birth?` (manual), `acquisition_type` (bred/purchased), `purchase_date?`, `purchase_price?`, `purchased_from?`, `status` (active/sold/expired, default active), `expired_on?`, `death_cause?`, `dam_id?`→goats, `sire_id?`→goats, `crossing_id?`→crossings, `color?`, `photo_url?` (nullable → placeholder), `notes?`, `created_by`, `created_at`, `updated_at`.
 - **crossings** — `id`, `dam_id`→goats, `sire_id?`→goats, `crossing_date`, `expected_kidding_date` (computed), `actual_kidding_date?` (manual), `number_of_kids?`, `status` (pregnant/kidded/aborted/failed), `notes?`, `created_by`, `created_at`.
 - **vaccinations** — `id`, `goat_id`, `vaccine_name`, `date_administered`, `dose?`, `notes?`, `created_by`, `created_at`. (Manual log only — no due-date field.)
 - **weights** — `id`, `goat_id`, `weight_kg`, `measured_on`, `notes?`.
 - **health_records** — `id`, `goat_id`, `record_date`, `type` (illness/treatment/deworming/checkup), `description`, `medication?`, `notes?`.
-- **expenses** — `id`, `expense_date`, `name`, `amount`, `paid_by`→profiles, `goat_id?`, `category?`, `notes?`, `created_by`, `created_at`.
-- **settlements** — `id`, `from_user`→profiles, `to_user`→profiles, `amount`, `settled_on`, `note?`, `created_at`.
+- **expenses** — `id`, `expense_date`, `name`, `amount`, `paid_by`→users, `goat_id?`, `category?`, `notes?`, `created_by`, `created_at`.
+- **settlements** — `id`, `from_user`→users, `to_user`→users, `amount`, `settled_on`, `note?`, `created_at`.
 
 ### Indexes (chosen to serve the filters/sorts below)
 `goats(status)`, `goats(breed_id)`, `goats(sex)`, `goats(acquisition_type)`, `goats(dam_id)`, `goats(sire_id)`, `goats(date_of_birth)`, plus a **trigram index on `goats(tag_number, name)`** for fast search;
@@ -173,7 +173,7 @@ section previews) · `GET /goats/{id}/pedigree` · `POST /goats/{id}/link-parent
 ---
 
 ## Frontend pages
-- `/login` — Supabase Auth (email/password).
+- `/login` — email/password against the FastAPI backend, which mints its own session token (no signup screen — accounts are seeded).
 - `/` **Dashboard** — cards: total goats, sex breakdown (does/bucks/kids), bred vs purchased, currently pregnant, upcoming kiddings (30d), kids born this year, **expense settle-up**. Charts: herd growth (line), births per month (bar), sex distribution (donut), kids-per-doe leaderboard, **monthly expense trend**. Capped alerts feed (upcoming kiddings). Animated card reveals and stat count-ups. *(No vaccination due-soon card — vaccinations are a manual log.)*
 - `/goats` — searchable, **fully filterable and paginated** grid of goat cards (photo or placeholder, tag, breed, sex, age, pregnant badge, bred/purchased tag, status badge). Active goats by default. Add form: **Bred or Purchased**, optional photo.
 - `/goats/[id]` — **the goat's complete 360 history — the centerpiece.** One click surfaces:
@@ -221,7 +221,7 @@ Top priority. Every screen is held to a "my non-technical partner can use it on 
 ```
 
 ## Build phases
-1. Scaffold repo, Supabase migrations + seed (breeds, profiles, storage bucket, indexes), README, `docs/PLAN.md`.
+1. Scaffold repo, Supabase migrations + seed (breeds, users, storage bucket, indexes), README, `docs/PLAN.md`.
 2. FastAPI: config/db/auth, **`core/pagination.py` + `core/filters.py` first** (so every router is built on them), models/schemas, breeds & goats CRUD + ID generation + goat filters.
 3. Crossings (mating → kidding, manual dates) + pedigree service + vaccinations/weights/health, each with their filter sets.
 4. Expenses + settle-up + monthly history + filtered summaries + dashboard aggregation.

@@ -1,69 +1,86 @@
 "use client";
 
-import type { Session } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-import { isSupabaseConfigured } from "@/lib/env";
-import { getSupabase } from "@/lib/supabaseClient";
+import { api } from "@/lib/apiClient";
+import { clearStoredToken, getStoredToken, setStoredToken } from "@/lib/authToken";
+import { keys } from "@/lib/queries";
+import type { CurrentUser } from "@/lib/types";
 
 interface AuthState {
-  session: Session | null;
+  user: CurrentUser | null;
   loading: boolean;
-  /** Supabase env vars missing — the setup screen explains what to do. */
-  configured: boolean;
-  signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
 
 const PUBLIC_ROUTES = new Set(["/login"]);
 
+/**
+ * Owns the session token, not a Supabase client.
+ *
+ * The backend mints a token good for 60 days at login, so this is not a
+ * short-lived session that needs silent refreshing — a stored token is
+ * trusted until the server actually rejects it, and nothing here signs a
+ * partner out on its own.
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  // Without Supabase keys there is no session to wait for, so we start settled
-  // and the setup screen renders on the first paint instead of after a flash.
-  const [loading, setLoading] = useState(isSupabaseConfigured);
+  const [user, setUser] = useState<CurrentUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
-    const supabase = getSupabase();
-
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    const token = getStoredToken();
+    if (!token) {
       setLoading(false);
-    });
-
-    // Covers sign-in, sign-out and silent token refresh in other tabs too.
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next);
-      setLoading(false);
-    });
-
-    return () => subscription.subscription.unsubscribe();
+      return;
+    }
+    api
+      .get<CurrentUser>("/me")
+      .then((me) => {
+        setUser(me);
+        queryClient.setQueryData(keys.me, me);
+      })
+      .catch(() => clearStoredToken())
+      .finally(() => setLoading(false));
+    // Runs once on mount — signIn/signOut update `user` directly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (loading || !isSupabaseConfigured) return;
+    if (loading) return;
     const isPublic = PUBLIC_ROUTES.has(pathname);
-    if (!session && !isPublic) router.replace("/login");
-    if (session && isPublic) router.replace("/");
-  }, [session, loading, pathname, router]);
+    if (!user && !isPublic) router.replace("/login");
+    if (user && isPublic) router.replace("/");
+  }, [user, loading, pathname, router]);
 
   const value = useMemo<AuthState>(
     () => ({
-      session,
+      user,
       loading,
-      configured: isSupabaseConfigured,
-      signOut: async () => {
-        if (isSupabaseConfigured) await getSupabase().auth.signOut();
-        setSession(null);
+      signIn: async (email: string, password: string) => {
+        const result = await api.post<{ access_token: string; user: CurrentUser }>(
+          "/auth/login",
+          { email, password },
+        );
+        setStoredToken(result.access_token);
+        setUser(result.user);
+        queryClient.setQueryData(keys.me, result.user);
+      },
+      signOut: () => {
+        clearStoredToken();
+        setUser(null);
+        queryClient.clear();
         router.replace("/login");
       },
     }),
-    [session, loading, router],
+    [user, loading, router, queryClient],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

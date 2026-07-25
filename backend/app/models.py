@@ -75,12 +75,15 @@ def _uuid_pk() -> Mapped[uuid.UUID]:
 # ---------------------------------------------------------------------------
 # Tables
 # ---------------------------------------------------------------------------
-class Profile(Base):
-    __tablename__ = "profiles"
+class User(Base):
+    """A portal user. Rows are seeded directly in the database — no signup flow."""
 
-    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
-    display_name: Mapped[str] = mapped_column(Text, nullable=False)
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
     email: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    display_name: Mapped[str] = mapped_column(Text, nullable=False)
+    password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -141,7 +144,7 @@ class Goat(Base):
     notes: Mapped[str | None] = mapped_column(Text)
 
     created_by: Mapped[uuid.UUID | None] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id")
+        PGUUID(as_uuid=True), ForeignKey("users.id")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -180,7 +183,7 @@ class Crossing(Base):
     )
     notes: Mapped[str | None] = mapped_column(Text)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id")
+        PGUUID(as_uuid=True), ForeignKey("users.id")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -205,7 +208,7 @@ class Vaccination(Base):
     dose: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id")
+        PGUUID(as_uuid=True), ForeignKey("users.id")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -225,7 +228,7 @@ class Weight(Base):
     measured_on: Mapped[date] = mapped_column(Date, nullable=False)
     notes: Mapped[str | None] = mapped_column(Text)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id")
+        PGUUID(as_uuid=True), ForeignKey("users.id")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -249,7 +252,7 @@ class HealthRecord(Base):
     medication: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id")
+        PGUUID(as_uuid=True), ForeignKey("users.id")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -266,7 +269,7 @@ class Expense(Base):
     name: Mapped[str] = mapped_column(Text, nullable=False)
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     paid_by: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
     goat_id: Mapped[uuid.UUID | None] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("goats.id", ondelete="SET NULL")
@@ -274,7 +277,7 @@ class Expense(Base):
     category: Mapped[str | None] = mapped_column(String(64))
     notes: Mapped[str | None] = mapped_column(Text)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id")
+        PGUUID(as_uuid=True), ForeignKey("users.id")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -283,7 +286,7 @@ class Expense(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
-    payer: Mapped[Profile] = relationship(foreign_keys=[paid_by], lazy="joined")
+    payer: Mapped[User] = relationship(foreign_keys=[paid_by], lazy="joined")
     goat: Mapped[Goat | None] = relationship(lazy="joined")
 
 
@@ -292,20 +295,20 @@ class Settlement(Base):
 
     id: Mapped[uuid.UUID] = _uuid_pk()
     from_user: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
     to_user: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     settled_on: Mapped[date] = mapped_column(Date, nullable=False)
     note: Mapped[str | None] = mapped_column(Text)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("profiles.id")
+        PGUUID(as_uuid=True), ForeignKey("users.id")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
 
-    payer: Mapped[Profile] = relationship(foreign_keys=[from_user], lazy="joined")
-    payee: Mapped[Profile] = relationship(foreign_keys=[to_user], lazy="joined")
+    payer: Mapped[User] = relationship(foreign_keys=[from_user], lazy="joined")
+    payee: Mapped[User] = relationship(foreign_keys=[to_user], lazy="joined")

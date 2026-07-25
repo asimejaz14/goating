@@ -20,10 +20,16 @@ insert into storage.buckets (id, name, public)
 values ('goat-photos', 'goat-photos', true)
 on conflict (id) do nothing;
 
+-- Uploads go straight from the browser to Storage using the public anon key
+-- — there is no Supabase Auth session anymore for a policy to key off, so
+-- this bucket is writable by anyone holding that key. That's an acceptable
+-- trade for a two-person farm app; every other table stays behind the API's
+-- own login. Route uploads through the backend instead if that ever changes.
 do $$
 begin
   execute 'drop policy if exists "goat photos readable" on storage.objects';
   execute 'drop policy if exists "goat photos writable by authenticated" on storage.objects';
+  execute 'drop policy if exists "goat photos writable" on storage.objects';
 
   execute $p$
     create policy "goat photos readable" on storage.objects
@@ -31,39 +37,27 @@ begin
   $p$;
 
   execute $p$
-    create policy "goat photos writable by authenticated" on storage.objects
-      for all to authenticated
+    create policy "goat photos writable" on storage.objects
+      for all to anon, authenticated
       using (bucket_id = 'goat-photos')
       with check (bucket_id = 'goat-photos')
   $p$;
 end $$;
 
 -- ---------------------------------------------------------------------------
--- Keep `profiles` in sync with auth.users so a newly invited partner shows up
--- as a payer option without any manual step.
+-- Portal users. There is no signup screen — add a partner by adding a row
+-- here and re-running this file (it upserts by email, so it is safe to run
+-- again after editing). `crypt(..., gen_salt('bf'))` produces a standard
+-- bcrypt hash, the same format the API's own `bcrypt`-based verification
+-- checks against.
+--
+-- EDIT THE ROWS BELOW before running this file for the first time: swap in
+-- your friend's real email, and pick real passwords — whatever you leave
+-- here is what you'll type in at /login.
 -- ---------------------------------------------------------------------------
-create or replace function handle_new_user() returns trigger as $$
-begin
-  insert into profiles (id, display_name, email)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data ->> 'display_name', split_part(new.email, '@', 1)),
-    new.email
-  )
-  on conflict (id) do nothing;
-  return new;
-end;
-$$ language plpgsql security definer;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function handle_new_user();
-
--- Backfill profiles for users that already exist.
-insert into profiles (id, display_name, email)
-select u.id,
-       coalesce(u.raw_user_meta_data ->> 'display_name', split_part(u.email, '@', 1)),
-       u.email
-from auth.users u
-on conflict (id) do nothing;
+insert into users (email, display_name, password_hash) values
+  ('asim.ejaz14@gmail.com', 'Asim',   crypt('ChangeThisPassword1!', gen_salt('bf'))),
+  ('friend@example.com',    'Friend', crypt('ChangeThisPassword2!', gen_salt('bf')))
+on conflict (email) do update
+  set display_name  = excluded.display_name,
+      password_hash = excluded.password_hash;
