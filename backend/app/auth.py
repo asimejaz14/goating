@@ -18,6 +18,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 from app.config import settings
 
@@ -43,6 +44,23 @@ def verify_password(password: str, password_hash: str) -> bool:
     except ValueError:
         # A malformed stored hash should just never match, not blow up the request.
         return False
+
+
+async def check_password(password: str, password_hash: str) -> bool:
+    """Verify a password without stalling everything else in flight.
+
+    bcrypt is deliberately slow — that is the point of it — and it is plain
+    blocking CPU work. Called straight from an async endpoint it holds the event
+    loop for its whole duration, so on a small instance every other request in
+    flight stops dead until the hash finishes. Measured at the stored cost
+    factor that is a few hundred milliseconds on a fast machine and noticeably
+    worse on a throttled one.
+
+    Running it on a worker thread keeps the loop free to serve everyone else,
+    which matters most exactly when it hurts: sign-in happens while the app is
+    firing its first page of requests.
+    """
+    return await run_in_threadpool(verify_password, password, password_hash)
 
 
 def _require_secret() -> str:

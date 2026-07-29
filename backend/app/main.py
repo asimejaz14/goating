@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
 from app.config import settings
+from app.database import get_engine, get_read_engine
 from app.routers import (
     auth,
     breeds,
@@ -26,6 +31,44 @@ from app.routers import (
 
 logger = logging.getLogger("goatfarm")
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+    """Open a connection on each pool before the first request arrives.
+
+    Opening a Postgres connection is a TCP, TLS and authentication handshake —
+    several round trips, and painfully slow when the database sits far from the
+    API. A host that scales to zero makes that the *normal* case rather than a
+    one-off: whoever loads the app after an idle period pays it, and pays it
+    again for every connection the page needs.
+
+    Doing it here means the handshakes happen once at boot, in parallel, while
+    the platform is already waiting for the app to come up — rather than one at
+    a time on the critical path of somebody's first page.
+
+    Best-effort on purpose. A database that is unreachable at boot must not stop
+    the app from starting; the request path opens connections on demand anyway,
+    and `/healthz` stays up to report the problem.
+    """
+    try:
+        await asyncio.wait_for(
+            asyncio.gather(
+                _touch(get_engine()),
+                _touch(get_read_engine()),
+                return_exceptions=True,
+            ),
+            timeout=10,
+        )
+    except Exception as exc:  # noqa: BLE001 — a cold database must never block startup
+        logger.warning("Could not pre-warm the database pools: %s", exc)
+    yield
+
+
+async def _touch(engine) -> None:
+    async with engine.connect() as connection:
+        await connection.execute(text("select 1"))
+
+
 app = FastAPI(
     title=settings.api_title,
     version="1.0.0",
@@ -33,6 +76,7 @@ app = FastAPI(
         "Herd records, crossings and kidding, an auto-building pedigree, "
         "vaccination and health logs, and the shared expense ledger."
     ),
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -75,6 +119,7 @@ async def retry_dropped_connections(request: Request, call_next):
             raise
         logger.warning("Retrying %s %s after a dropped connection", request.method, request.url.path)
         return await call_next(request)
+
 
 for module in (
     auth,

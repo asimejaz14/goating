@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import CurrentUser, create_access_token, verify_password
+from app.auth import CurrentUser, check_password, create_access_token
 from app.database import get_session
 from app.models import User
 
@@ -34,7 +34,7 @@ async def login(
     )
     user = result.scalar_one_or_none()
 
-    if user is None or not verify_password(payload.password, user.password_hash):
+    if user is None or not await check_password(payload.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="That email and password do not match.",
