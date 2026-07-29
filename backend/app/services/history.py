@@ -14,6 +14,7 @@ from decimal import Decimal
 from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import gather_reads
 from app.models import (
     AcquisitionType,
     Crossing,
@@ -45,10 +46,13 @@ TIMELINE_LIMIT = 60
 MINI_PEDIGREE_GENERATIONS = 3
 
 
-async def _count(session: AsyncSession, stmt: Select) -> int:
-    return await session.scalar(
-        select(func.count()).select_from(stmt.order_by(None).subquery())
-    ) or 0
+def _total(stmt: Select):
+    """A section's true total, as a scalar subquery rather than its own query."""
+    return (
+        select(func.count())
+        .select_from(stmt.order_by(None).subquery())
+        .scalar_subquery()
+    )
 
 
 async def build(session: AsyncSession, goat: Goat) -> GoatHistoryOut:
@@ -65,48 +69,107 @@ async def build(session: AsyncSession, goat: Goat) -> GoatHistoryOut:
     health_stmt = select(HealthRecord).where(HealthRecord.goat_id == goat.id)
     expenses_stmt = select(Expense).where(Expense.goat_id == goat.id)
 
-    kid_rows = (
-        await session.execute(
-            kids_stmt.order_by(Goat.date_of_birth.desc().nulls_last(), Goat.id.desc())
-            .limit(PREVIEW_LIMIT)
-        )
-    ).scalars().unique().all()
-    crossing_rows = (
-        await session.execute(
-            crossings_stmt.order_by(Crossing.crossing_date.desc()).limit(PREVIEW_LIMIT)
-        )
-    ).scalars().unique().all()
-    vaccination_rows = (
-        await session.execute(
-            vaccinations_stmt.order_by(Vaccination.date_administered.desc()).limit(
-                PREVIEW_LIMIT
-            )
-        )
-    ).scalars().unique().all()
-    weight_rows = (
-        await session.execute(
-            weights_stmt.order_by(Weight.measured_on.desc()).limit(WEIGHT_LIMIT)
-        )
-    ).scalars().unique().all()
-    health_rows = (
-        await session.execute(
-            health_stmt.order_by(HealthRecord.record_date.desc()).limit(PREVIEW_LIMIT)
-        )
-    ).scalars().unique().all()
-    expense_rows = (
-        await session.execute(
-            expenses_stmt.order_by(Expense.expense_date.desc()).limit(PREVIEW_LIMIT)
-        )
-    ).scalars().unique().all()
+    # Six section previews, the section totals and the mini pedigree — eight
+    # unrelated reads of one goat's records. Issued together they cost about one
+    # database wait instead of eight, which is most of this page's response time
+    # once the database is across a network.
+    def preview(stmt: Select):
+        async def read(s: AsyncSession):
+            return (await s.execute(stmt)).scalars().unique().all()
 
-    expenses_amount = await session.scalar(
-        select(func.coalesce(func.sum(Expense.amount), 0)).where(
-            Expense.goat_id == goat.id
-        )
+        return read
+
+    async def read_totals(s: AsyncSession):
+        # Seven numbers nothing else depends on, as scalar subqueries in one
+        # statement rather than seven separate counts.
+        return (
+            await s.execute(
+                select(
+                    _total(kids_stmt).label("kids"),
+                    _total(crossings_stmt).label("crossings"),
+                    _total(vaccinations_stmt).label("vaccinations"),
+                    _total(weights_stmt).label("weights"),
+                    _total(health_stmt).label("health_records"),
+                    _total(expenses_stmt).label("expenses"),
+                    select(func.coalesce(func.sum(Expense.amount), 0))
+                    .where(Expense.goat_id == goat.id)
+                    .scalar_subquery()
+                    .label("expenses_amount"),
+                )
+            )
+        ).mappings().one()
+
+    (
+        kid_rows,
+        crossing_rows,
+        vaccination_rows,
+        weight_rows,
+        health_rows,
+        expense_rows,
+        totals,
+        mini_pedigree,
+    ) = await gather_reads(
+        [
+            preview(
+                kids_stmt.order_by(
+                    Goat.date_of_birth.desc().nulls_last(), Goat.id.desc()
+                ).limit(PREVIEW_LIMIT)
+            ),
+            preview(
+                crossings_stmt.order_by(Crossing.crossing_date.desc()).limit(
+                    PREVIEW_LIMIT
+                )
+            ),
+            preview(
+                vaccinations_stmt.order_by(
+                    Vaccination.date_administered.desc()
+                ).limit(PREVIEW_LIMIT)
+            ),
+            preview(
+                weights_stmt.order_by(Weight.measured_on.desc()).limit(WEIGHT_LIMIT)
+            ),
+            preview(
+                health_stmt.order_by(HealthRecord.record_date.desc()).limit(
+                    PREVIEW_LIMIT
+                )
+            ),
+            preview(
+                expenses_stmt.order_by(Expense.expense_date.desc()).limit(
+                    PREVIEW_LIMIT
+                )
+            ),
+            read_totals,
+            lambda s: pedigree.build_tree(s, goat, MINI_PEDIGREE_GENERATIONS),
+        ]
     )
 
-    kids = await goat_service.to_summaries(session, list(kid_rows), today)
-    crossings = await crossing_service.to_out(session, list(crossing_rows), today)
+    # Every goat this page will render: the subject, her kids, her parents and
+    # both sides of each crossing. Loading their derived facts once keeps the
+    # three read-model builders below from each going back for the same two.
+    on_page = [
+        goat.id,
+        goat.dam_id,
+        goat.sire_id,
+        *(kid.id for kid in kid_rows),
+        *(crossing.dam_id for crossing in crossing_rows),
+        *(crossing.sire_id for crossing in crossing_rows),
+    ]
+    crossing_ids = [crossing.id for crossing in crossing_rows]
+
+    # The last two reads. Both need the rows above, so they could not join the
+    # batch before — but they do not need each other, so they go together.
+    facts, registered = await gather_reads(
+        [
+            lambda s: goat_service.load_facts(s, on_page),
+            lambda s: crossing_service.registered_kids(s, crossing_ids),
+        ]
+    )
+
+    # Everything below is assembled from what is already in hand.
+    kids = await goat_service.to_summaries(session, list(kid_rows), today, facts)
+    crossings = await crossing_service.to_out(
+        session, list(crossing_rows), today, facts, registered
+    )
     vaccinations = [VaccinationOut.model_validate(row) for row in vaccination_rows]
     weights = [WeightOut.model_validate(row) for row in weight_rows]
     health_records = [HealthRecordOut.model_validate(row) for row in health_rows]
@@ -119,26 +182,24 @@ async def build(session: AsyncSession, goat: Goat) -> GoatHistoryOut:
         expenses.append(item)
 
     return GoatHistoryOut(
-        goat=await goat_service.to_detail(session, goat, today),
+        goat=await goat_service.to_detail(session, goat, today, facts),
         kids=kids,
-        kids_total=await _count(session, kids_stmt),
+        kids_total=totals["kids"],
         crossings=crossings,
-        crossings_total=await _count(session, crossings_stmt),
+        crossings_total=totals["crossings"],
         vaccinations=vaccinations,
-        vaccinations_total=await _count(session, vaccinations_stmt),
+        vaccinations_total=totals["vaccinations"],
         weights=weights,
-        weights_total=await _count(session, weights_stmt),
+        weights_total=totals["weights"],
         health_records=health_records,
-        health_records_total=await _count(session, health_stmt),
+        health_records_total=totals["health_records"],
         expenses=expenses,
-        expenses_total=await _count(session, expenses_stmt),
-        expenses_amount=Decimal(expenses_amount or 0),
+        expenses_total=totals["expenses"],
+        expenses_amount=Decimal(totals["expenses_amount"] or 0),
         timeline=build_timeline(
             goat, kids, crossings, vaccinations, weights, health_records, expenses
         ),
-        pedigree=(
-            await pedigree.build_tree(session, goat, MINI_PEDIGREE_GENERATIONS)
-        ).root,
+        pedigree=mini_pedigree.root,
     )
 
 

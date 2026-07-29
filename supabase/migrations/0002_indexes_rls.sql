@@ -70,7 +70,11 @@ begin
     raise exception 'Unknown breed: %', p_breed_id using errcode = 'foreign_key_violation';
   end if;
 
-  return upper(p_prefix) || '-' || v_code || '-' || lpad(v_seq::text, 2, '0');
+  -- Zero-padded to two digits, but never truncated: plain `lpad(x, 2, '0')`
+  -- CUTS a longer string down to two characters, so the hundredth goat of a
+  -- breed would be handed '10' and collide with the tenth.
+  return upper(p_prefix) || '-' || v_code || '-'
+      || lpad(v_seq::text, greatest(2, length(v_seq::text)), '0');
 end;
 $$ language plpgsql;
 

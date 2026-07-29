@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi import status as http_status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload
 
 from app.auth import CurrentUser, get_current_user
 from app.core.filters import (
@@ -147,8 +147,12 @@ async def _get_goat(session: AsyncSession, goat_id: UUID) -> Goat:
     # `lazy="selectin"` strategy doesn't kick in through `Session.get()`, so a
     # goat with a linked parent would otherwise 500 the moment `to_detail` (or
     # the history/pedigree builders) touch `goat.dam`/`goat.sire`.
+    #
+    # They are outer-joined rather than fetched separately: both parents ride
+    # along with the goat's own row instead of costing a round trip each, which
+    # on a remote database is the bulk of what this lookup would otherwise take.
     goat = await session.get(
-        Goat, goat_id, options=[selectinload(Goat.dam), selectinload(Goat.sire)]
+        Goat, goat_id, options=[joinedload(Goat.dam), joinedload(Goat.sire)]
     )
     if goat is None:
         raise HTTPException(

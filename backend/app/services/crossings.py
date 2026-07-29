@@ -45,13 +45,24 @@ async def registered_kids(
 
 
 async def to_out(
-    session: AsyncSession, crossings: Sequence[Crossing], today: date | None = None
+    session: AsyncSession,
+    crossings: Sequence[Crossing],
+    today: date | None = None,
+    facts: goat_service.HerdFacts | None = None,
+    kids: dict[UUID, int] | None = None,
 ) -> list[CrossingOut]:
+    """Map crossings onto the read model.
+
+    ``facts`` and ``kids`` let a caller that has already loaded them — for a
+    wider set of goats, or alongside its other reads — hand them in rather than
+    have this go back to the database for the same rows.
+    """
     if not crossings:
         return []
 
     today = today or date.today()
-    kids = await registered_kids(session, [crossing.id for crossing in crossings])
+    if kids is None:
+        kids = await registered_kids(session, [crossing.id for crossing in crossings])
 
     parents = [
         goat
@@ -62,7 +73,9 @@ async def to_out(
     summaries = {
         goat.id: summary
         for goat, summary in zip(
-            parents, await goat_service.to_summaries(session, parents, today), strict=True
+            parents,
+            await goat_service.to_summaries(session, parents, today, facts),
+            strict=True,
         )
     }
 

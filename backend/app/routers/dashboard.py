@@ -21,10 +21,10 @@ router = APIRouter(
 
 
 @router.get("/dashboard/summary", response_model=DashboardOut)
-async def dashboard_summary(
-    session: AsyncSession = Depends(get_session),
-) -> DashboardOut:
-    return await dashboard_service.build(session)
+async def dashboard_summary() -> DashboardOut:
+    # No session dependency: the summary is assembled from several independent
+    # reads that run concurrently, each managing its own.
+    return await dashboard_service.build()
 
 
 @router.get("/settings", response_model=FarmSettingsOut)

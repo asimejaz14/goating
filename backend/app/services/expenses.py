@@ -128,24 +128,20 @@ async def load_balance(
             )
         ).all()
     )
-    out = dict(
-        (
-            await session.execute(
-                select(Settlement.from_user, func.sum(Settlement.amount)).group_by(
-                    Settlement.from_user
-                )
-            )
-        ).all()
+
+    # Money sent and money received are two views of the same rows, so one
+    # grouped pass answers both — settlements are read twice per dashboard
+    # otherwise, and every avoided statement is a network round trip saved.
+    out: dict[UUID, Decimal] = {}
+    back: dict[UUID, Decimal] = {}
+    transfers = await session.execute(
+        select(
+            Settlement.from_user, Settlement.to_user, func.sum(Settlement.amount)
+        ).group_by(Settlement.from_user, Settlement.to_user)
     )
-    back = dict(
-        (
-            await session.execute(
-                select(Settlement.to_user, func.sum(Settlement.amount)).group_by(
-                    Settlement.to_user
-                )
-            )
-        ).all()
-    )
+    for sender, recipient, amount in transfers:
+        out[sender] = out.get(sender, ZERO) + amount
+        back[recipient] = back.get(recipient, ZERO) + amount
 
     return compute_balance(participants, paid, out, back, currency_symbol)
 

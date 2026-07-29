@@ -14,7 +14,7 @@ from collections.abc import Sequence
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy import func, select, union_all
+from sqlalchemy import func, literal, select, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Crossing, CrossingStatus, Goat
@@ -77,39 +77,106 @@ async def pregnant_ids(session: AsyncSession, goat_ids: Sequence[UUID]) -> set[U
     return {row[0] for row in rows}
 
 
+class HerdFacts:
+    """Kid counts and open pregnancies for a batch of goats.
+
+    A page that shows several groups of goats at once — a doe, her kids and her
+    crossing partners — would otherwise load these two facts once per group. The
+    lookups are plain dictionary reads, so loading them once for every goat on
+    the page gives byte-identical output for two round trips instead of two per
+    group.
+    """
+
+    __slots__ = ("kids", "pregnant")
+
+    def __init__(self, kids: dict[UUID, int], pregnant: set[UUID]) -> None:
+        self.kids = kids
+        self.pregnant = pregnant
+
+
+async def load_facts(session: AsyncSession, goat_ids: Sequence[UUID]) -> HerdFacts:
+    """Both derived facts for a batch of goats, in a single statement.
+
+    Offspring counts and open pregnancies come from different tables, so they
+    travel together as a tagged ``UNION ALL`` rather than as two round trips.
+    """
+    ids = list({goat_id for goat_id in goat_ids if goat_id is not None})
+    if not ids:
+        return HerdFacts(kids={}, pregnant=set())
+
+    as_dam = select(Goat.dam_id.label("parent_id")).where(Goat.dam_id.in_(ids))
+    as_sire = select(Goat.sire_id.label("parent_id")).where(Goat.sire_id.in_(ids))
+    parents = union_all(as_dam, as_sire).subquery()
+
+    kid_counts = select(
+        literal("kids").label("kind"),
+        parents.c.parent_id.label("goat_id"),
+        func.count().label("value"),
+    ).group_by(parents.c.parent_id)
+
+    expecting = (
+        select(literal("pregnant"), Crossing.dam_id, literal(0))
+        .where(
+            Crossing.dam_id.in_(ids),
+            Crossing.status == CrossingStatus.pregnant,
+        )
+        .distinct()
+    )
+
+    kids: dict[UUID, int] = {}
+    pregnant: set[UUID] = set()
+    for kind, goat_id, value in await session.execute(kid_counts.union_all(expecting)):
+        if kind == "kids":
+            kids[goat_id] = value
+        else:
+            pregnant.add(goat_id)
+    return HerdFacts(kids=kids, pregnant=pregnant)
+
+
 async def to_summaries(
-    session: AsyncSession, goats: Sequence[Goat], today: date | None = None
+    session: AsyncSession,
+    goats: Sequence[Goat],
+    today: date | None = None,
+    facts: HerdFacts | None = None,
 ) -> list[GoatSummary]:
-    """Map ORM rows onto the card shape used by lists and pickers."""
+    """Map ORM rows onto the card shape used by lists and pickers.
+
+    Pass ``facts`` when the caller has already loaded them for a wider set of
+    goats; otherwise they are loaded for exactly these ones.
+    """
     if not goats:
         return []
 
     today = today or date.today()
-    ids = [goat.id for goat in goats]
-    kids = await kids_counts(session, ids)
-    pregnant = await pregnant_ids(session, ids)
+    facts = facts or await load_facts(session, [goat.id for goat in goats])
 
-    return [_summary(goat, kids, pregnant, today) for goat in goats]
+    return [_summary(goat, facts.kids, facts.pregnant, today) for goat in goats]
 
 
 async def to_detail(
-    session: AsyncSession, goat: Goat, today: date | None = None
+    session: AsyncSession,
+    goat: Goat,
+    today: date | None = None,
+    facts: HerdFacts | None = None,
 ) -> GoatDetail:
     """Full profile, including the (already loaded) parent links."""
     today = today or date.today()
-    kids = await kids_counts(session, [goat.id])
-    pregnant = await pregnant_ids(session, [goat.id])
-
     parents = [parent for parent in (goat.dam, goat.sire) if parent is not None]
+    facts = facts or await load_facts(
+        session, [goat.id, *(parent.id for parent in parents)]
+    )
+
     parent_summaries = {
         parent.id: summary
         for parent, summary in zip(
-            parents, await to_summaries(session, parents, today), strict=True
+            parents,
+            await to_summaries(session, parents, today, facts),
+            strict=True,
         )
     }
 
     detail = GoatDetail.model_validate(goat)
-    _apply_derived(detail, goat, kids, pregnant, today)
+    _apply_derived(detail, goat, facts.kids, facts.pregnant, today)
     detail.dam = parent_summaries.get(goat.dam_id)
     detail.sire = parent_summaries.get(goat.sire_id)
     return detail
