@@ -5,7 +5,8 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
+from time import perf_counter
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +16,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
 from app.config import settings
-from app.database import get_engine, get_read_engine
+from app.database import READ_POOL_SIZE, get_engine, get_read_engine
 from app.routers import (
     auth,
     breeds,
@@ -53,20 +54,35 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     try:
         await asyncio.wait_for(
             asyncio.gather(
-                _touch(get_engine()),
-                _touch(get_read_engine()),
+                # Two for the request pool covers a page's own queries; the read
+                # pool is filled outright because the aggregate pages want all of
+                # it at once, and a connection opened on demand there would land
+                # mid-request.
+                _fill(get_engine(), 2),
+                _fill(get_read_engine(), READ_POOL_SIZE),
                 return_exceptions=True,
             ),
-            timeout=10,
+            timeout=15,
         )
     except Exception as exc:  # noqa: BLE001 — a cold database must never block startup
         logger.warning("Could not pre-warm the database pools: %s", exc)
     yield
 
 
-async def _touch(engine) -> None:
-    async with engine.connect() as connection:
-        await connection.execute(text("select 1"))
+async def _fill(engine, count: int) -> None:
+    """Open ``count`` connections at once, then hand them back to the pool.
+
+    They have to be held simultaneously — opening and releasing one at a time
+    would just keep reusing the same pooled connection and leave the pool with
+    exactly one.
+    """
+    async with AsyncExitStack() as stack:
+        connections = await asyncio.gather(
+            *(stack.enter_async_context(engine.connect()) for _ in range(count))
+        )
+        await asyncio.gather(
+            *(connection.execute(text("select 1")) for connection in connections)
+        )
 
 
 app = FastAPI(
@@ -85,6 +101,10 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # The frontend is on a different origin, and a cross-origin response's
+    # headers stay hidden from the browser unless they are named here — without
+    # it the server timing below never reaches the network panel.
+    expose_headers=["Server-Timing"],
 )
 
 # List responses are repetitive JSON and compress by roughly 85% — a full page
@@ -111,14 +131,28 @@ async def retry_dropped_connections(request: Request, call_next):
 
     Only safe methods are replayed — a write may already have committed before
     the connection dropped, and running it twice is worse than reporting it.
+
+    Also stamps how long the server actually took. Without it a slow request is
+    ambiguous — the browser's timing covers the round trip to the API, the API's
+    own round trips to the database, and the work in between, and the fix is
+    completely different depending on which one dominates. `Server-Timing` shows
+    up natively in the browser's network timing panel, so the split is visible
+    rather than inferred.
     """
+    started = perf_counter()
     try:
-        return await call_next(request)
+        response = await call_next(request)
     except DBAPIError as exc:
         if not exc.connection_invalidated or request.method not in SAFE_METHODS:
             raise
-        logger.warning("Retrying %s %s after a dropped connection", request.method, request.url.path)
-        return await call_next(request)
+        logger.warning(
+            "Retrying %s %s after a dropped connection", request.method, request.url.path
+        )
+        response = await call_next(request)
+
+    elapsed_ms = (perf_counter() - started) * 1000
+    response.headers["Server-Timing"] = f"app;dur={elapsed_ms:.1f}"
+    return response
 
 
 for module in (
