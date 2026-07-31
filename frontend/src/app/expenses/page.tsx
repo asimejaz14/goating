@@ -224,7 +224,7 @@ export default function ExpensesPage() {
                         <span
                           className={cn(
                             "block text-[11px] font-semibold uppercase tracking-wide",
-                            active ? "text-primary-foreground/70" : "text-faint-foreground",
+                            active ? "text-primary-foreground" : "text-faint-foreground",
                           )}
                         >
                           {bucket.label}
@@ -240,7 +240,7 @@ export default function ExpensesPage() {
                         <span
                           className={cn(
                             "block text-[11px]",
-                            active ? "text-primary-foreground/70" : "text-faint-foreground",
+                            active ? "text-primary-foreground" : "text-faint-foreground",
                           )}
                         >
                           {bucket.count} {entries(bucket.count)}

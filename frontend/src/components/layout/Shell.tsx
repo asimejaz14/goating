@@ -5,13 +5,16 @@ import { X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { cn } from "@/lib/cn";
+
 import { SidebarContent } from "./Sidebar";
 import { Topbar } from "./Topbar";
+import { useSidebar } from "./useSidebar";
 
 /**
- * The responsive frame: a fixed 240px sidebar from `lg` up, collapsing to a
- * slide-in drawer below it, with a sticky topbar running the width of the
- * content column.
+ * The responsive frame: a sidebar from `lg` up — full width or collapsed to an
+ * icon rail, whichever the user last chose — collapsing to a slide-in drawer
+ * below that, with a sticky topbar running the width of the content column.
  *
  * The sidebar is inset with a small margin rather than welded to the window
  * edge, so it reads as a floating panel over the workspace — the shape the
@@ -20,6 +23,7 @@ import { Topbar } from "./Topbar";
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { collapsed, toggle, ready } = useSidebar();
 
   // A route change means navigation already happened — the drawer has
   // nothing left to do open.
@@ -27,8 +31,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh bg-background">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 p-3 lg:block">
-        <SidebarContent />
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-30 hidden p-3 lg:block",
+          collapsed ? "w-[76px]" : "w-60",
+          // Only animate once the stored preference has been applied, or every
+          // page load would play a collapse animation at whoever chose the rail.
+          ready && "transition-[width] duration-250 ease-soft",
+        )}
+      >
+        <SidebarContent collapsed={collapsed} />
       </aside>
 
       <AnimatePresence>
@@ -54,10 +66,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
                   type="button"
                   onClick={() => setDrawerOpen(false)}
                   aria-label="Close menu"
-                  className="absolute right-3 top-3.5 z-10 flex h-7 w-7 items-center justify-center rounded-lg text-sidebar-muted transition-colors hover:bg-white/10 hover:text-sidebar-foreground"
+                  className="absolute right-3 top-3.5 z-10 flex h-7 w-7 items-center justify-center rounded-lg text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-sidebar-foreground"
                 >
                   <X className="h-4 w-4" />
                 </button>
+                {/* The drawer always shows labels — it is opened deliberately,
+                    and there is no width pressure inside it. */}
                 <SidebarContent onNavigate={() => setDrawerOpen(false)} />
               </div>
             </motion.div>
@@ -65,8 +79,18 @@ export function Shell({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      <div className="flex min-h-dvh flex-col lg:pl-60">
-        <Topbar onMenu={() => setDrawerOpen(true)} />
+      <div
+        className={cn(
+          "flex min-h-dvh flex-col",
+          collapsed ? "lg:pl-[76px]" : "lg:pl-60",
+          ready && "transition-[padding] duration-250 ease-soft",
+        )}
+      >
+        <Topbar
+          onMenu={() => setDrawerOpen(true)}
+          onToggleSidebar={toggle}
+          sidebarCollapsed={collapsed}
+        />
         <main className="flex-1">
           <div className="mx-auto w-full max-w-[1400px] px-4 pb-10 pt-6 sm:px-6 lg:px-8">
             {children}

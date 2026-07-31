@@ -1,8 +1,8 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Operations-tool palette: ink sidebar, one blue for action, one sky for
- * secondary emphasis, and the three status colours every dashboard needs.
+ * Operations-tool palette: one blue for action, one sky for secondary
+ * emphasis, and the three status colours every dashboard needs.
  * Every colour resolves through a CSS variable defined in globals.css, so the
  * light/dark switch is a value swap rather than `dark:` scattered everywhere.
  */
@@ -30,7 +30,7 @@ const config: Config = {
           foreground: hsl("sidebar-foreground"),
           muted: hsl("sidebar-muted"),
           border: hsl("sidebar-border"),
-          active: hsl("sidebar-active"),
+          hover: hsl("sidebar-hover"),
         },
         background: hsl("background"),
         surface: {
@@ -91,11 +91,12 @@ const config: Config = {
         md: "var(--radius-md)", // 10px — inputs, buttons
         sm: "var(--radius-sm)", // 8px — badges, chips
       },
+      // Read from variables so each theme can define its own — see globals.css.
       boxShadow: {
-        xs: "0 1px 2px 0 rgb(15 23 42 / 0.04)",
-        sm: "0 1px 3px 0 rgb(15 23 42 / 0.07), 0 1px 2px -1px rgb(15 23 42 / 0.05)",
-        md: "0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 6px -2px rgb(15 23 42 / 0.05)",
-        lg: "0 16px 40px -12px rgb(15 23 42 / 0.18), 0 4px 10px -4px rgb(15 23 42 / 0.06)",
+        xs: "var(--shadow-xs)",
+        sm: "var(--shadow-sm)",
+        md: "var(--shadow-md)",
+        lg: "var(--shadow-lg)",
       },
       spacing: {
         4.5: "1.125rem",
@@ -130,6 +131,9 @@ const config: Config = {
       },
       transitionDuration: {
         DEFAULT: "180ms",
+        // The sidebar collapse. Slower than a hover so the width change reads
+        // as the panel moving rather than the layout jumping.
+        250: "250ms",
       },
     },
   },

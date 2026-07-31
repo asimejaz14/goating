@@ -27,6 +27,12 @@ interface TooltipProps {
   /** The trigger. Must forward ref-less DOM props — a plain element or button. */
   children: React.ReactElement<Record<string, unknown>>;
   className?: string;
+  /**
+   * Stretch the wrapper to the full width of its parent. The wrapper is
+   * `inline-flex` by default, which shrink-wraps the trigger — fine for an
+   * icon button, wrong for a nav row that has to fill the rail.
+   */
+  block?: boolean;
 }
 
 /**
@@ -37,7 +43,7 @@ interface TooltipProps {
  * trigger, describes it with `aria-describedby`, and stays out of the
  * accessibility tree otherwise.
  */
-export function Tooltip({ label, side = "top", children, className }: TooltipProps) {
+export function Tooltip({ label, side = "top", children, className, block }: TooltipProps) {
   const [hovering, setHovering] = useState(false);
   const [open, setOpen] = useState(false);
   const id = useId();
@@ -62,7 +68,7 @@ export function Tooltip({ label, side = "top", children, className }: TooltipPro
   });
 
   return (
-    <span className="relative inline-flex">
+    <span className={cn("relative", block ? "flex w-full" : "inline-flex")}>
       {trigger}
       <AnimatePresence>
         {open && (

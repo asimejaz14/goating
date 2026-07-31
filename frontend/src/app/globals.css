@@ -5,20 +5,20 @@
 /**
  * Design tokens for a data-dense operations tool, not a themed website.
  *
- * The sidebar is a fixed ink panel in both themes — like Linear and Vercel,
- * it does not follow the light/dark toggle, so the product has one constant
- * anchor while the workspace around it adapts. Every other surface resolves
- * through a CSS variable so the two themes are a swap of values, not two
- * parallel sets of classes.
+ * Every surface — the sidebar included — resolves through a CSS variable, so
+ * the two themes are a swap of values rather than two parallel sets of
+ * classes, and nothing in the product is pinned to one mode.
  */
 @layer base {
   :root {
-    /* Fixed regardless of theme — the sidebar's own palette. */
-    --sidebar: 221 39% 11%; /* #111827 */
-    --sidebar-foreground: 210 20% 88%;
-    --sidebar-muted: 216 24% 68%;
-    --sidebar-border: 221 30% 18%;
-    --sidebar-active: 221 35% 17%;
+    /* The sidebar follows the theme like everything else. In light mode it is
+       a white panel floating on the workspace, distinguished by its border
+       rather than by being a different colour family. */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-muted: 215 18% 40%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-hover: 210 40% 96%;
 
     --background: 210 40% 98%; /* #F8FAFC */
     --surface: 0 0% 100%; /* #FFFFFF */
@@ -26,8 +26,12 @@
 
     --foreground: 222 47% 11%; /* slate-900 */
     --muted: 210 40% 96%; /* slate-100 */
-    --muted-foreground: 215 16% 47%; /* slate-500 */
-    --faint-foreground: 215 20% 65%; /* slate-400 */
+    /* Both secondary tiers clear WCAG AA against white, with enough distance
+       between them to still read as a hierarchy. The tertiary tone used to sit
+       at 2.45:1 — fine as decoration, but it labels dates, hints and captions,
+       and this gets read on a phone in a shed rather than at a desk. */
+    --muted-foreground: 215 18% 38%;
+    --faint-foreground: 215 13% 46%;
 
     --border: 214 32% 91%; /* slate-200 */
     --border-strong: 213 27% 84%; /* slate-300 */
@@ -43,16 +47,19 @@
     --accent-soft: 204 94% 94%;
     --accent-soft-foreground: 201 90% 27%;
 
-    --success: 142 71% 45%;
+    /* Deep enough to be read as text on white, not just filled as a shape —
+       these carry the ledger's plus and minus figures and the form errors, and
+       the brighter versions failed AA by a wide margin. */
+    --success: 142 70% 30%;
     --success-soft: 141 84% 93%;
-    --success-soft-foreground: 142 72% 29%;
+    --success-soft-foreground: 142 72% 26%;
 
-    --warning: 38 92% 50%;
+    --warning: 32 92% 40%;
     --warning-soft: 48 96% 89%;
-    --warning-soft-foreground: 26 90% 37%;
+    --warning-soft-foreground: 26 90% 33%;
 
-    --danger: 0 84% 60%;
-    --danger-hover: 0 74% 51%;
+    --danger: 0 72% 45%;
+    --danger-hover: 0 74% 38%;
     --danger-foreground: 0 0% 100%;
     --danger-soft: 0 93% 94%;
     --danger-soft-foreground: 0 74% 42%;
@@ -67,48 +74,89 @@
     --radius-md: 0.625rem; /* 10px — inputs, buttons */
     --radius-sm: 0.5rem; /* 8px — badges, chips */
 
+    /* Shadows are tokens rather than fixed values because they cannot be the
+       same in both themes: a soft slate shadow is what separates a white card
+       from a white-ish page, and on a dark page it is invisible. */
+    --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+    --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.07), 0 1px 2px -1px rgb(15 23 42 / 0.05);
+    --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 6px -2px rgb(15 23 42 / 0.05);
+    --shadow-lg: 0 16px 40px -12px rgb(15 23 42 / 0.18), 0 4px 10px -4px rgb(15 23 42 / 0.06);
+
     color-scheme: light;
   }
 
+  /**
+   * Dark is a designed palette, not the light one inverted.
+   *
+   * Three things decide whether a dark UI reads or turns to mud, and all three
+   * were wrong before:
+   *
+   * 1. A card has to be visibly lighter than the page. The gap used to be
+   *    three points of lightness, which is nothing — every panel dissolved
+   *    into the background. It is five now, and the page itself sits off pure
+   *    black so there is somewhere below it to go.
+   * 2. Borders do the work that shadows do in light mode, because a dark
+   *    shadow on a dark surface is invisible. They are raised enough to
+   *    actually draw an edge.
+   * 3. Secondary text needs more lightness on dark than the equivalent grey
+   *    does on white, or every caption and axis label turns into a smudge.
+   *
+   * Accent hues are lifted and slightly desaturated as well: a colour tuned
+   * for white vibrates against a dark field and reads as neon rather than as
+   * information.
+   */
   .dark {
-    --background: 224 32% 7%;
-    --surface: 221 28% 10%;
-    --surface-sunken: 221 26% 8%;
+    --sidebar: 222 24% 11%;
+    --sidebar-foreground: 210 24% 95%;
+    --sidebar-muted: 215 16% 65%;
+    --sidebar-border: 220 16% 20%;
+    --sidebar-hover: 220 16% 18%;
 
-    --foreground: 210 30% 94%;
-    --muted: 220 22% 15%;
-    --muted-foreground: 216 16% 62%;
-    --faint-foreground: 216 12% 46%;
+    --background: 224 26% 7%;
+    --surface: 222 22% 12%;
+    --surface-sunken: 224 24% 9%;
 
-    --border: 220 20% 18%;
-    --border-strong: 218 16% 26%;
+    --foreground: 210 24% 96%;
+    --muted: 220 18% 18%;
+    --muted-foreground: 215 18% 72%;
+    --faint-foreground: 215 14% 55%;
 
-    --primary: 217 91% 60%; /* blue-500, brighter for dark bg */
-    --primary-hover: 213 94% 68%;
-    --primary-active: 214 95% 93%;
+    --border: 218 17% 22%;
+    --border-strong: 217 15% 34%;
+
+    --primary: 217 91% 64%;
+    --primary-hover: 213 94% 71%;
+    --primary-active: 213 94% 78%;
     --primary-foreground: 222 47% 11%;
-    --primary-soft: 226 45% 18%;
-    --primary-soft-foreground: 212 96% 78%;
+    --primary-soft: 223 44% 21%;
+    --primary-soft-foreground: 213 96% 82%;
 
-    --accent: 199 95% 74%;
-    --accent-soft: 201 60% 16%;
-    --accent-soft-foreground: 199 95% 74%;
+    --accent: 199 90% 68%;
+    --accent-soft: 200 52% 19%;
+    --accent-soft-foreground: 199 92% 80%;
 
-    --success: 142 69% 58%;
-    --success-soft: 142 40% 14%;
-    --success-soft-foreground: 142 77% 73%;
+    --success: 142 62% 55%;
+    --success-soft: 145 38% 17%;
+    --success-soft-foreground: 142 68% 74%;
 
-    --warning: 43 96% 56%;
-    --warning-soft: 32 40% 15%;
-    --warning-soft-foreground: 46 97% 65%;
+    --warning: 40 92% 60%;
+    --warning-soft: 34 44% 18%;
+    --warning-soft-foreground: 44 94% 72%;
 
-    --danger: 0 91% 71%;
-    --danger-hover: 0 94% 82%;
+    --danger: 0 84% 68%;
+    --danger-hover: 0 90% 76%;
     --danger-foreground: 222 47% 11%;
-    --danger-soft: 0 45% 16%;
-    --danger-soft-foreground: 0 94% 82%;
+    --danger-soft: 0 38% 20%;
+    --danger-soft-foreground: 0 90% 81%;
 
-    --ring: 217 91% 60%;
+    --ring: 217 91% 64%;
+
+    /* Black rather than slate, and far heavier — on a dark page a shadow only
+       registers at all once it is close to opaque. */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.35);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.45), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 14px -2px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 20px 48px -12px rgb(0 0 0 / 0.7), 0 6px 14px -6px rgb(0 0 0 / 0.5);
 
     color-scheme: dark;
   }
