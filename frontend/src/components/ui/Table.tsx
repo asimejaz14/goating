@@ -16,7 +16,7 @@ import { cn } from "@/lib/cn";
  */
 export function Table({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("rounded-lg border border-border", className)}>
+    <div className={cn("rounded-xl border border-border bg-surface shadow-xs", className)}>
       <table className="w-full border-separate border-spacing-0 text-sm">{children}</table>
     </div>
   );
@@ -53,7 +53,7 @@ export function Th({
       className={cn(
         "sticky top-14 z-10 h-10 whitespace-nowrap border-b border-border bg-surface-sunken px-4",
         "text-xs font-semibold uppercase tracking-wide text-muted-foreground",
-        "first:rounded-tl-lg last:rounded-tr-lg",
+        "first:rounded-tl-xl last:rounded-tr-xl",
         align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left",
         className,
       )}
@@ -67,8 +67,11 @@ export function TableBody({ children }: { children: React.ReactNode }) {
   return (
     <tbody
       className={cn(
-        "[&>tr:last-child>td:first-child]:rounded-bl-lg",
-        "[&>tr:last-child>td:last-child]:rounded-br-lg",
+        "[&>tr:last-child>td:first-child]:rounded-bl-xl",
+        "[&>tr:last-child>td:last-child]:rounded-br-xl",
+        // The wrapper already draws the outer edge; a border under the final
+        // row would cut a straight line across the rounded bottom corners.
+        "[&>tr:last-child>td]:border-b-0",
       )}
     >
       {children}

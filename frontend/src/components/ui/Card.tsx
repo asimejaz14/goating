@@ -42,6 +42,7 @@ export function Card({ index = 0, interactive, className, children, ...props }: 
 
 export function SectionCard({
   title,
+  description,
   action,
   icon: Icon,
   className,
@@ -49,6 +50,8 @@ export function SectionCard({
   children,
 }: {
   title: string;
+  /** One line saying what the panel is showing — charts are not self-evident. */
+  description?: string;
   action?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
   className?: string;
@@ -58,14 +61,23 @@ export function SectionCard({
 }) {
   return (
     <section className={cn("card flex flex-col overflow-hidden", className)}>
-      <header className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border px-4">
-        <h2 className="flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
-          {Icon && <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />}
-          <span className="truncate">{title}</span>
-        </h2>
+      <header className="flex shrink-0 items-start justify-between gap-3 px-4 pb-3 pt-4">
+        <div className="flex min-w-0 items-start gap-2.5">
+          {Icon && (
+            <span className="icon-chip mt-0.5 h-7 w-7 bg-primary-soft text-primary-soft-foreground">
+              <Icon className="h-[15px] w-[15px]" />
+            </span>
+          )}
+          <div className="min-w-0">
+            <h2 className="truncate text-[14.5px] font-semibold text-foreground">{title}</h2>
+            {description && (
+              <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{description}</p>
+            )}
+          </div>
+        </div>
         {action && <div className="shrink-0">{action}</div>}
       </header>
-      <div className={cn("min-h-0 flex-1 p-4", bodyClassName)}>{children}</div>
+      <div className={cn("min-h-0 flex-1 px-4 pb-4", bodyClassName)}>{children}</div>
     </section>
   );
 }

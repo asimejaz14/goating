@@ -123,7 +123,7 @@ export default function VaccinationsPage() {
               <Th>Goat</Th>
               <Th>Vaccine</Th>
               <Th className="hidden lg:table-cell">Notes</Th>
-              <Th>Date</Th>
+              <Th className="hidden sm:table-cell">Date</Th>
               <Th className="w-px" />
             </TableHead>
             <TableBody>
@@ -153,7 +153,7 @@ export default function VaccinationsPage() {
                 <Th>Goat</Th>
                 <Th>Vaccine</Th>
                 <Th className="hidden lg:table-cell">Notes</Th>
-                <Th>Date</Th>
+                <Th className="hidden sm:table-cell">Date</Th>
                 <Th className="w-px" />
               </TableHead>
               <TableBody>
@@ -179,6 +179,11 @@ export default function VaccinationsPage() {
                       ) : (
                         <span className="text-faint-foreground">—</span>
                       )}
+                      {/* The date column is dropped on a phone; a vaccination
+                          without its date tells you nothing, so it moves here. */}
+                      <p className="mt-0.5 text-xs text-faint-foreground sm:hidden">
+                        {formatDate(record.date_administered)}
+                      </p>
                     </Td>
                     <Td>
                       <p className="truncate text-[13.5px] font-semibold text-foreground">
@@ -191,7 +196,7 @@ export default function VaccinationsPage() {
                     <Td className="hidden max-w-xs truncate text-muted-foreground lg:table-cell">
                       {record.notes || "—"}
                     </Td>
-                    <Td className="whitespace-nowrap text-muted-foreground">
+                    <Td className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
                       {formatDate(record.date_administered)}
                     </Td>
                     <Td className="!px-2">

@@ -47,33 +47,39 @@ export function StatCard({
       transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1], delay: Math.min(index, 10) * 0.035 }}
       {...(onClick ? { onClick, type: "button" as const } : {})}
       className={cn(
-        "card group flex flex-col p-4 text-left",
+        emphasis ? "card-feature" : "card",
+        "group flex items-start gap-3 p-4 text-left",
         onClick &&
           "cursor-pointer transition-[border-color,box-shadow,transform] duration-200 ease-soft hover:-translate-y-0.5 hover:border-border-strong hover:shadow-md",
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <p className="truncate text-[13px] font-medium text-muted-foreground">{label}</p>
-        <Icon
-          className={cn(
-            "h-4 w-4 shrink-0 transition-colors",
-            emphasis ? "text-primary" : "text-faint-foreground group-hover:text-muted-foreground",
-          )}
-        />
-      </div>
-      <p
+      {/* The icon leads rather than trails: it is the fastest way to tell one
+          number from the next when six of these sit in a row. */}
+      <span
         className={cn(
-          "mt-2 text-[28px] font-semibold leading-none tracking-tight",
-          emphasis ? "text-primary" : "text-foreground",
+          "icon-chip h-9 w-9",
+          emphasis ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted text-muted-foreground",
         )}
       >
-        {typeof value === "number" ? (
-          <CountUp value={value} />
-        ) : (
-          <span className="tnum">{value}</span>
-        )}
-      </p>
-      {hint && <p className="mt-1.5 truncate text-xs text-faint-foreground">{hint}</p>}
+        <Icon className="h-[18px] w-[18px]" />
+      </span>
+
+      <span className="min-w-0 flex-1">
+        <p className="truncate text-[12.5px] font-medium text-muted-foreground">{label}</p>
+        <p
+          className={cn(
+            "mt-1 text-[26px] font-semibold leading-none tracking-tight",
+            emphasis ? "text-primary" : "text-foreground",
+          )}
+        >
+          {typeof value === "number" ? (
+            <CountUp value={value} />
+          ) : (
+            <span className="tnum">{value}</span>
+          )}
+        </p>
+        {hint && <p className="mt-1.5 truncate text-xs text-faint-foreground">{hint}</p>}
+      </span>
     </Element>
   );
 }

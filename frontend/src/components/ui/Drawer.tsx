@@ -87,7 +87,12 @@ export function Drawer({ open, onClose, title, description, footer, size = "md",
             exit={{ x: "100%" }}
             transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              "relative flex h-full w-full flex-col border-l border-border bg-surface shadow-lg",
+              "relative flex h-full w-full flex-col overflow-hidden border-l border-border bg-surface shadow-lg",
+              // Rounded on the leading edge only — the other three meet the
+              // window, where a radius would just show a sliver of page behind.
+              // Clipped so the header rule and the tinted footer follow the
+              // curve instead of squaring off the corners they sit in.
+              "sm:rounded-l-2xl",
               SIZES[size],
             )}
           >

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClock, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Baby, CalendarClock, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { CrossingForm } from "@/components/crossings/CrossingForm";
@@ -169,7 +169,7 @@ export default function CrossingsPage() {
             <TableHead>
               <Th>Crossing</Th>
               <Th className="hidden sm:table-cell">Crossed</Th>
-              <Th>Kidding</Th>
+              <Th className="hidden md:table-cell">Kidding</Th>
               <Th>Status</Th>
               <Th className="hidden lg:table-cell" align="right">
                 Kids
@@ -202,7 +202,7 @@ export default function CrossingsPage() {
               <TableHead>
                 <Th>Crossing</Th>
                 <Th className="hidden sm:table-cell">Crossed</Th>
-                <Th>Kidding</Th>
+                <Th className="hidden md:table-cell">Kidding</Th>
                 <Th>Status</Th>
                 <Th className="hidden lg:table-cell" align="right">
                   Kids
@@ -218,11 +218,25 @@ export default function CrossingsPage() {
                   return (
                     <Tr key={crossing.id}>
                       <Td>
-                        <div className="flex min-w-0 items-center gap-1.5">
+                        {/* Two full tag numbers will not sit side by side on a
+                            phone, so the pair stacks and only opens out into a
+                            single line once there is room for it. */}
+                        <div className="flex min-w-0 flex-col sm:flex-row sm:items-center sm:gap-1.5">
                           <GoatCell goat={crossing.dam} fallback="Unknown doe" />
-                          <span className="shrink-0 text-xs text-faint-foreground">×</span>
-                          <GoatCell goat={crossing.sire} fallback="Unknown buck" />
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            <span className="shrink-0 text-xs text-faint-foreground">×</span>
+                            <GoatCell goat={crossing.sire} fallback="Unknown buck" />
+                          </div>
                         </div>
+                        {/* The kidding column is dropped on a phone — two tag
+                            numbers, a date and a status badge cannot share one
+                            narrow row — so the date rejoins the pair here. */}
+                        <p className="mt-0.5 text-xs text-faint-foreground md:hidden">
+                          {crossing.actual_kidding_date ? "Kidded" : "Due"}{" "}
+                          {formatDate(
+                            crossing.actual_kidding_date ?? crossing.expected_kidding_date,
+                          )}
+                        </p>
                       </Td>
                       <Td className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
                         {formatDate(crossing.crossing_date)}
@@ -230,8 +244,8 @@ export default function CrossingsPage() {
                       <Td
                         className={
                           crossing.actual_kidding_date
-                            ? "whitespace-nowrap text-foreground"
-                            : "whitespace-nowrap text-muted-foreground"
+                            ? "hidden whitespace-nowrap text-foreground md:table-cell"
+                            : "hidden whitespace-nowrap text-muted-foreground md:table-cell"
                         }
                       >
                         {formatDate(crossing.actual_kidding_date ?? crossing.expected_kidding_date)}
@@ -252,15 +266,29 @@ export default function CrossingsPage() {
                       </Td>
                       <Td className="!px-2">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* The label is the first thing to go on a narrow
+                              screen — the icon still reads, and the row has no
+                              width to spare once two tag numbers are in it. */}
                           {pregnant && (
-                            <Button size="sm" variant="secondary" onClick={() => setKidding(crossing)}>
-                              Record kidding
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => setKidding(crossing)}
+                              aria-label="Record kidding"
+                            >
+                              <Baby className="h-4 w-4" />
+                              <span className="hidden lg:inline">Record kidding</span>
                             </Button>
                           )}
                           {crossing.status === "kidded" && missing > 0 && (
-                            <Button size="sm" variant="secondary" onClick={() => setAddKidTo(crossing)}>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => setAddKidTo(crossing)}
+                              aria-label={`Register ${missing} more`}
+                            >
                               <Plus className="h-4 w-4" />
-                              Register {missing}
+                              <span className="hidden lg:inline">Register {missing}</span>
                             </Button>
                           )}
                           <RowMenu

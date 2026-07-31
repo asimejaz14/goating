@@ -43,7 +43,9 @@ export default function LoginPage() {
         className="w-full max-w-sm"
       >
         <div className="mb-7 flex flex-col items-center text-center">
-          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-lg font-bold text-primary-foreground">
+          {/* Same mark as the sidebar, so the first screen and every screen
+              after it are recognisably the same product. */}
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-lg font-bold text-white shadow-sm">
             G
           </span>
           <h1 className="mt-4 text-xl font-semibold text-foreground">Goat Farm Portal</h1>

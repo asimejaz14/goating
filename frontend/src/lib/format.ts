@@ -81,8 +81,16 @@ export function formatCountdown(days: number | null | undefined): string {
   return `${days} ${plural(days, "day")} to go`;
 }
 
-export function plural(count: number, word: string, suffix = "s"): string {
-  return count === 1 ? word : `${word}${suffix}`;
+/**
+ * Pick the singular or plural wording for a count.
+ *
+ * The plural is given in full rather than as a suffix to append. A suffix only
+ * works for words that pluralise by addition — "entry" with an "ies" suffix
+ * came out as "entryies" — and spelling out the whole word costs nothing and
+ * cannot be got wrong.
+ */
+export function plural(count: number, one: string, many = `${one}s`): string {
+  return count === 1 ? one : many;
 }
 
 export function titleCase(value: string): string {

@@ -35,7 +35,9 @@ export function BalanceCard({
 
   return (
     <>
-      <Card index={index} className={cn("flex flex-col p-4", className)}>
+      {/* The tinted panel — this is the number both partners open the app to
+          check, so it is the one surface on the page allowed to draw the eye. */}
+      <Card index={index} className={cn("card-feature flex flex-col p-4", className)}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-medium text-muted-foreground">Shared balance</p>
@@ -45,8 +47,10 @@ export function BalanceCard({
           </div>
           <span
             className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
-              balance.settled ? "bg-success-soft text-success-soft-foreground" : "bg-muted text-muted-foreground",
+              "icon-chip h-9 w-9",
+              balance.settled
+                ? "bg-success-soft text-success-soft-foreground"
+                : "bg-primary text-primary-foreground shadow-sm",
             )}
           >
             {balance.settled ? (

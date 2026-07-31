@@ -47,15 +47,19 @@ function flatten(root: PedigreeNode, maxGenerations: number): Columns {
 }
 
 /**
- * Columns share the available width instead of claiming a fixed one, so the
- * chart shrinks to whatever space it has rather than scrolling sideways.
+ * Columns share the available width, but not below `minColumn` — past that
+ * point they scroll sideways instead of squeezing further. A tag number is the
+ * entire content of a node, and a column narrow enough to truncate it to
+ * "BGF-MC-1…" has stopped being a pedigree chart; scrolling a few generations
+ * is the lesser cost.
+ *
  * `--stub` drives both the column gap and the connector geometry, and tightens
  * on narrow screens — keeping the two in step is what stops the elbows
  * detaching from the cards.
  */
 const SIZES = {
-  compact: { slot: 64, gap: "[--stub:1rem] sm:[--stub:2rem]" },
-  full: { slot: 76, gap: "[--stub:1rem] sm:[--stub:2.5rem]" },
+  compact: { slot: 64, minColumn: 132, gap: "[--stub:1rem] sm:[--stub:2rem]" },
+  full: { slot: 76, minColumn: 158, gap: "[--stub:1rem] sm:[--stub:2.5rem]" },
 } as const;
 
 type Size = keyof typeof SIZES;
@@ -139,17 +143,23 @@ export function PedigreeTree({
   rootId?: string | null;
 }) {
   const columns = flatten(root, generations);
-  const { slot, gap } = SIZES[size];
+  const { slot, minColumn, gap } = SIZES[size];
   const rows = 2 ** (columns.length - 1);
 
   return (
-    <div className="pb-2">
+    // `pt-1` leaves room for the root's focus ring, which would otherwise be
+    // shaved off by the scroll container's edge.
+    <div className="-mx-1 overflow-x-auto px-1 pb-2 pt-1">
       <div
         className={cn("flex w-full gap-[var(--stub)]", gap)}
         style={{ minHeight: rows * slot }}
       >
         {columns.map((slots, column) => (
-          <div key={column} className="flex min-w-0 flex-1 flex-col">
+          <div
+            key={column}
+            className="flex min-w-0 flex-1 flex-col"
+            style={{ minWidth: minColumn }}
+          >
             {column === 0 && (
               <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-faint-foreground">
                 This goat

@@ -85,9 +85,11 @@ const config: Config = {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       borderRadius: {
-        lg: "var(--radius-lg)", // 12px — cards, dialogs, drawers
-        md: "var(--radius-md)", // 8px — inputs, buttons
-        sm: "var(--radius-sm)", // 6px — badges, chips
+        "2xl": "1.25rem", // 20px — the sidebar panel and other large surfaces
+        xl: "var(--radius-xl)", // 16px — cards, dialogs, drawers
+        lg: "var(--radius-lg)", // 12px — inner blocks, list rows, popovers
+        md: "var(--radius-md)", // 10px — inputs, buttons
+        sm: "var(--radius-sm)", // 8px — badges, chips
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgb(15 23 42 / 0.04)",

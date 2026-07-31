@@ -3,7 +3,6 @@
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-import { usePageActionSlot } from "./PageActionContext";
 import { isActivePath, NAV_ITEMS } from "./nav";
 
 function currentSection(pathname: string): string {
@@ -12,14 +11,13 @@ function currentSection(pathname: string): string {
 }
 
 /**
- * Sticky and slim — a breadcrumb for orientation and, crucially, the current
- * page's primary action pinned on the right. It stays visible while a long
- * list scrolls, so "Add goat" or "Record crossing" is never more than a
- * glance away.
+ * Sticky and slim — purely for orientation.
+ *
+ * Page actions live in the page heading, next to the title they act on, so
+ * nothing here competes with them.
  */
 export function Topbar({ onMenu }: { onMenu: () => void }) {
   const pathname = usePathname();
-  const action = usePageActionSlot();
 
   return (
     <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-surface/85 px-4 backdrop-blur sm:px-6 lg:px-8">
@@ -46,10 +44,6 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         </ol>
       </nav>
 
-      {/* The theme toggle lives in the sidebar only — always visible there on
-          desktop, and reachable from the mobile drawer — so it never needs a
-          second copy competing for space here. */}
-      {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
     </header>
   );
 }

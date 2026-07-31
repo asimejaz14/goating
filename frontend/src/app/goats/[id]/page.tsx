@@ -264,7 +264,11 @@ export default function GoatDetailPage() {
               from what the portal already knows.
             </p>
           ) : (
-            <PedigreeTree root={data.pedigree} generations={3} size="compact" rootId={goat.id} />
+            /* Two generations is what fits this column at a readable width.
+               Anything deeper belongs on the full tree, which is one click
+               away in the header — a mini chart that has to be scrolled to be
+               read is doing neither job. */
+            <PedigreeTree root={data.pedigree} generations={2} size="compact" rootId={goat.id} />
           )}
         </SectionCard>
 
@@ -515,7 +519,7 @@ export default function GoatDetailPage() {
                 <span className="tnum text-lg font-bold text-foreground">
                   {formatMoney(data.expenses_amount, currency)}
                 </span>{" "}
-                across {data.expenses_total} {plural(data.expenses_total, "entry", "ies")}
+                across {data.expenses_total} {plural(data.expenses_total, "entry", "entries")}
               </p>
               <ul className="divide-y divide-border">
                 {data.expenses.map((expense) => (

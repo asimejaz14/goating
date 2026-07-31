@@ -59,7 +59,10 @@ export function FilterBar({
   };
 
   return (
-    <div className={className}>
+    // On its own surface rather than loose on the page background: the controls
+    // then read as one group that belongs to the table below, instead of a row
+    // of unrelated widgets floating between the heading and the data.
+    <div className={cn("card p-3 sm:p-4", className)}>
       <div className="flex flex-wrap items-end gap-3">
         <SearchInput
           value={query}

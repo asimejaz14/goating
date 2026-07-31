@@ -131,11 +131,14 @@ export function useDashboard() {
 // Goats
 // ---------------------------------------------------------------------------
 
-export function useGoats(params: QueryParams) {
+export function useGoats(params: QueryParams, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: keys.goats(params),
     queryFn: () => api.get<Page<GoatSummary>>("/goats", params),
     ...LIST,
+    // Pickers pass `false` until opened — a closed dropdown on a form with
+    // several of them should not each fetch a herd page nobody has asked for.
+    enabled: options?.enabled ?? true,
   });
 }
 

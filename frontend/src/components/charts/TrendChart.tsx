@@ -49,8 +49,9 @@ export function TrendLine({
         <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -6 }}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.24} />
-              <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+              <stop offset="0%" stopColor={color} stopOpacity={0.32} />
+              <stop offset="60%" stopColor={color} stopOpacity={0.1} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.01} />
             </linearGradient>
           </defs>
           <CartesianGrid {...GRID} />
@@ -92,7 +93,7 @@ export function TrendBars({
             cursor={{ fill: CHART_COLORS.grid, opacity: 0.4 }}
             content={<ChartTooltip unit={unit} prefix={prefix} />}
           />
-          <Bar dataKey="value" name="Total" radius={[4, 4, 0, 0]} animationDuration={600}>
+          <Bar dataKey="value" name="Total" radius={[8, 8, 8, 8]} animationDuration={600}>
             {data.map((point, index) => (
               <Cell
                 key={point.period}
