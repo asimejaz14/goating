@@ -23,24 +23,27 @@ import { useSidebar } from "./useSidebar";
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { collapsed, toggle, ready } = useSidebar();
+  const { hidden, toggle, ready } = useSidebar();
 
   // A route change means navigation already happened — the drawer has
   // nothing left to do open.
   useEffect(() => setDrawerOpen(false), [pathname]);
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="workspace min-h-dvh bg-background">
       <aside
+        aria-hidden={hidden}
         className={cn(
-          "fixed inset-y-0 left-0 z-30 hidden p-3 lg:block",
-          collapsed ? "w-[76px]" : "w-60",
+          "fixed inset-y-0 left-0 z-30 hidden w-60 p-3 lg:block",
+          // Slid out rather than narrowed: the workspace gets the whole window
+          // back, which is the point of asking for it.
+          hidden && "pointer-events-none -translate-x-full opacity-0",
           // Only animate once the stored preference has been applied, or every
-          // page load would play a collapse animation at whoever chose the rail.
-          ready && "transition-[width] duration-250 ease-soft",
+          // page load would play a slide at whoever chose to hide it.
+          ready && "transition-[transform,opacity] duration-250 ease-soft",
         )}
       >
-        <SidebarContent collapsed={collapsed} />
+        <SidebarContent />
       </aside>
 
       <AnimatePresence>
@@ -82,14 +85,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div
         className={cn(
           "flex min-h-dvh flex-col",
-          collapsed ? "lg:pl-[76px]" : "lg:pl-60",
+          hidden ? "lg:pl-0" : "lg:pl-60",
           ready && "transition-[padding] duration-250 ease-soft",
         )}
       >
         <Topbar
           onMenu={() => setDrawerOpen(true)}
           onToggleSidebar={toggle}
-          sidebarCollapsed={collapsed}
+          sidebarHidden={hidden}
         />
         <main className="flex-1">
           <div className="mx-auto w-full max-w-[1400px] px-4 pb-10 pt-6 sm:px-6 lg:px-8">

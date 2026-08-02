@@ -5,7 +5,6 @@ import {
   BarChart3,
   CalendarClock,
   ChevronRight,
-  Heart,
   LineChart,
   PieChart,
   ShoppingBag,
@@ -17,6 +16,7 @@ import { useRouter } from "next/navigation";
 
 import { DonutChart } from "@/components/charts/DonutChart";
 import { TrendBars, TrendLine } from "@/components/charts/TrendChart";
+import { HeroBand } from "@/components/dashboard/HeroBand";
 import { BalanceCard } from "@/components/expenses/BalanceCard";
 import { Badge } from "@/components/ui/Badge";
 import { Card, SectionCard } from "@/components/ui/Card";
@@ -35,6 +35,26 @@ function greeting(): string {
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
   return "Good evening";
+}
+
+/**
+ * The change across a series, for the pill on a stat card.
+ *
+ * Returns nothing when the window is too short to compare or when the change
+ * is not worth a badge — a card claiming "+0" over a flat year is noise
+ * dressed up as insight.
+ */
+function changeOver(
+  values: number[],
+  label: string,
+  window = values.length,
+  goodWhenUp = true,
+): { value: number; label: string; goodWhenUp: boolean } | undefined {
+  if (values.length < 2) return undefined;
+  const recent = values.slice(-window);
+  const change = Math.round((recent.at(-1) ?? 0) - (recent[0] ?? 0));
+  if (change === 0) return undefined;
+  return { value: change, label, goodWhenUp };
 }
 
 /** A muted trailing link used throughout — consistent iconography instead of "→". */
@@ -72,14 +92,22 @@ export default function DashboardPage() {
   const { cards, balance, currency_symbol: symbol } = data;
   const firstName = me?.display_name?.split(" ")[0];
 
+  // Every series below is already in the payload — the cards just read the
+  // shape of what the charts further down plot in full.
+  const herdSeries = data.herd_growth.map((point) => point.value);
+  const birthSeries = data.births_per_month.map((point) => point.value);
+  const spendSeries = data.monthly_expenses.map((point) => point.value);
+
   return (
     <>
-      <PageHeader
-        title={firstName ? `${greeting()}, ${firstName}` : greeting()}
-        subtitle="Everything the operation is doing right now, at a glance"
+      <HeroBand
+        greeting={greeting()}
+        name={firstName}
+        cards={cards}
+        nextKidding={data.upcoming_kiddings[0]}
       />
 
-      <div className="space-y-6">
+      <div className="mt-6 space-y-6">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatCard
             label="Goats in the herd"
@@ -88,27 +116,29 @@ export default function DashboardPage() {
             index={0}
             hint={`${cards.does} ${plural(cards.does, "doe")} · ${cards.bucks} ${plural(cards.bucks, "buck")}`}
             onClick={() => router.push("/goats")}
-          />
-          <StatCard
-            label="Expecting now"
-            value={cards.pregnant_now}
-            icon={Heart}
-            emphasis
-            index={1}
-            hint={
-              cards.due_next_30_days
-                ? `${cards.due_next_30_days} due in 30 days`
-                : "None due within 30 days"
-            }
-            onClick={() => router.push("/crossings?status=pregnant")}
+            trend={herdSeries}
+            delta={changeOver(herdSeries, "over 12 months")}
           />
           <StatCard
             label="Kids born this year"
             value={cards.kids_born_this_year}
             icon={Baby}
-            index={2}
+            index={1}
             hint={`${cards.kids_under_6_months} under 6 months`}
             onClick={() => router.push("/goats?acquisition_type=bred")}
+            trend={birthSeries}
+          />
+          <StatCard
+            label="Monthly spend"
+            value={`${symbol}${Math.round(spendSeries.at(-1) ?? 0).toLocaleString()}`}
+            icon={Wallet}
+            index={2}
+            hint="This month, before the split"
+            onClick={() => router.push("/expenses")}
+            trend={spendSeries}
+            /* Deliberately no change pill. The current month is still being
+               filled in, so measuring it against a completed one reports a
+               collapse every time the calendar turns over. */
           />
           <StatCard
             label="Bought from market"
@@ -180,25 +210,29 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <SectionCard title="Herd growth" icon={LineChart}>
-            <TrendLine data={data.herd_growth} />
-            <p className="mt-2 text-xs text-faint-foreground">
-              Active goats at the end of each month.
-            </p>
+          <SectionCard
+            title="Herd growth"
+            description="Active goats at the end of each month"
+            icon={LineChart}
+          >
+            <TrendLine
+              data={data.herd_growth}
+              emptyMessage="Add goats to the herd and this fills in month by month."
+            />
           </SectionCard>
 
-          <SectionCard title="Kids born per month" icon={BarChart3}>
-            <TrendBars data={data.births_per_month} />
-            <p className="mt-2 text-xs text-faint-foreground">
-              Counted from each kid&rsquo;s date of birth.
-            </p>
+          <SectionCard
+            title="Kids born per month"
+            description="Counted from each kid's date of birth"
+            icon={BarChart3}
+          >
+            <TrendBars
+              data={data.births_per_month}
+              emptyMessage="No kids recorded in the last twelve months. Register a kidding and the months start filling in."
+            />
           </SectionCard>
 
-          <SectionCard title="Does and bucks" icon={PieChart}>
-            <DonutChart data={data.sex_distribution} />
-          </SectionCard>
-
-          <SectionCard title="Breeds" icon={PieChart}>
+          <SectionCard title="Breeds" description="The active herd by breed" icon={PieChart}>
             <DonutChart data={data.breed_distribution} />
           </SectionCard>
 
@@ -262,13 +296,20 @@ export default function DashboardPage() {
 
           <SectionCard
             title="Monthly spend"
+            description="Everything the farm spent, before the 50/50 split"
             icon={Wallet}
+            /* Runs the full width: the sex split moved into the hero, which
+               leaves an odd number of panels, and a half-width card stranded
+               beside a gap is the one arrangement worse than either. */
+            className="lg:col-span-2"
             action={<SectionLink href="/expenses">Ledger</SectionLink>}
           >
-            <TrendBars data={data.monthly_expenses} prefix={symbol} highlightLast />
-            <p className="mt-2 text-xs text-faint-foreground">
-              Everything the farm spent, before the 50/50 split.
-            </p>
+            <TrendBars
+              data={data.monthly_expenses}
+              prefix={symbol}
+              highlightLast
+              emptyMessage="Log an expense and the monthly trend builds itself."
+            />
           </SectionCard>
         </div>
       </div>

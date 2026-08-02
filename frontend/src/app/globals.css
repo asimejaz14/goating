@@ -188,8 +188,25 @@
 }
 
 @layer components {
+  /**
+   * A card is a surface, a hairline, a shadow — and, on dark, a one-pixel
+   * highlight along its top edge.
+   *
+   * That last one is the difference between a dark panel that looks painted on
+   * and one that looks lit. Real objects catch light on their upper edge; the
+   * eye reads its absence as flatness long before it can say why. It is
+   * deliberately absent in light mode, where a white card on a white page has
+   * no edge to catch anything.
+   */
   .card {
     @apply rounded-xl border border-border bg-surface shadow-xs;
+  }
+
+  .dark .card,
+  .dark .card-feature {
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.045),
+      var(--shadow-xs);
   }
 
   /* A tinted panel for the one block on a page that should draw the eye —
@@ -208,6 +225,37 @@
   /* Soft circular icon chip that sits beside a heading or a stat. */
   .icon-chip {
     @apply flex shrink-0 items-center justify-center rounded-xl;
+  }
+
+  /**
+   * The hero band. One panel per page at most — a deep field of brand colour
+   * with two soft light sources bled into it, so the page opens on something
+   * with weight rather than on a row of equal grey boxes.
+   */
+  .hero {
+    @apply relative overflow-hidden rounded-2xl;
+    background-image:
+      radial-gradient(70rem 30rem at 12% -30%, hsl(var(--accent) / 0.5), transparent 60%),
+      radial-gradient(50rem 26rem at 90% 120%, hsl(var(--primary) / 0.55), transparent 62%),
+      linear-gradient(115deg, hsl(224 60% 22%), hsl(226 62% 16%) 55%, hsl(222 55% 13%));
+  }
+
+  /* Fine grid ruling laid over the hero — texture at a distance, invisible up
+     close, which stops a large flat gradient reading as a placeholder. */
+  .hero-grid {
+    background-image:
+      linear-gradient(hsl(0 0% 100% / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 100% / 0.045) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(60rem 24rem at 30% 0%, black, transparent 75%);
+  }
+
+  /* The whole workspace sits on a faint wash rather than a flat fill, so the
+     page has a direction of light instead of being uniformly blank. */
+  .workspace {
+    background-image:
+      radial-gradient(48rem 24rem at 8% -8%, hsl(var(--primary) / 0.055), transparent 60%),
+      radial-gradient(40rem 22rem at 100% 0%, hsl(var(--accent) / 0.05), transparent 55%);
   }
 
   /* Every input, select and picker trigger lands on exactly 36px, so a row of

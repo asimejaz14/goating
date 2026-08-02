@@ -25,14 +25,14 @@ function currentSection(pathname: string): string {
 export function Topbar({
   onMenu,
   onToggleSidebar,
-  sidebarCollapsed,
+  sidebarHidden,
 }: {
   onMenu: () => void;
   onToggleSidebar: () => void;
-  sidebarCollapsed: boolean;
+  sidebarHidden: boolean;
 }) {
   const pathname = usePathname();
-  const ToggleIcon = sidebarCollapsed ? PanelLeftOpen : PanelLeftClose;
+  const ToggleIcon = sidebarHidden ? PanelLeftOpen : PanelLeftClose;
 
   return (
     <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-surface/85 px-4 backdrop-blur sm:px-6 lg:px-8">
@@ -45,12 +45,12 @@ export function Topbar({
         <Menu className="h-[18px] w-[18px]" />
       </button>
 
-      <Tooltip label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} side="bottom">
+      <Tooltip label={sidebarHidden ? "Show sidebar" : "Hide sidebar"} side="bottom">
         <button
           type="button"
           onClick={onToggleSidebar}
-          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-pressed={sidebarCollapsed}
+          aria-label={sidebarHidden ? "Show sidebar" : "Hide sidebar"}
+          aria-expanded={!sidebarHidden}
           className="-ml-1.5 hidden h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:flex"
         >
           <ToggleIcon className="h-[18px] w-[18px]" />

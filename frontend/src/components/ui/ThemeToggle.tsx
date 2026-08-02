@@ -21,42 +21,10 @@ const OPTIONS: Array<{ value: Theme; label: string; icon: typeof Sun }> = [
  * It used to carry a second, fixed-dark palette for the sidebar, which was the
  * one surface that did not follow the theme. The sidebar follows it now, so
  * the semantic tokens are correct everywhere and that branch is gone.
- *
- * `compact` cycles through the three settings with a single button instead of
- * showing all of them — for the collapsed rail, where a three-up control has
- * nowhere to sit.
  */
-export function ThemeToggle({
-  className,
-  compact,
-}: {
-  className?: string;
-  compact?: boolean;
-}) {
+export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
   const groupId = useId();
-
-  if (compact) {
-    const index = OPTIONS.findIndex((option) => option.value === theme);
-    const current = OPTIONS[index === -1 ? 2 : index];
-    const next = OPTIONS[(index === -1 ? 2 : index + 1) % OPTIONS.length];
-    return (
-      <Tooltip label={`Theme: ${current.label}`} side="right" block>
-        <button
-          type="button"
-          onClick={() => setTheme(next.value)}
-          aria-label={`Colour theme: ${current.label}. Switch to ${next.label}.`}
-          className={cn(
-            "flex h-9 w-full items-center justify-center rounded-xl border border-sidebar-border",
-            "text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-sidebar-foreground",
-            className,
-          )}
-        >
-          <current.icon className="h-[15px] w-[15px]" />
-        </button>
-      </Tooltip>
-    );
-  }
 
   return (
     <div
