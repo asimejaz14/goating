@@ -14,11 +14,20 @@ const SIDES: Record<Side, string> = {
   right: "left-full top-1/2 -translate-y-1/2 ml-1.5",
 };
 
-const OFFSET: Record<Side, { x?: number; y?: number }> = {
-  top: { y: 4 },
-  bottom: { y: -4 },
-  left: { x: 4 },
-  right: { x: -4 },
+/** The direction a tooltip grows from — it enters *out* of its trigger. */
+const OFFSET: Record<Side, string> = {
+  top: "translateY(4px)",
+  bottom: "translateY(-4px)",
+  left: "translateX(4px)",
+  right: "translateX(-4px)",
+};
+
+/** Scale from the edge nearest the trigger, not from the middle of the bubble. */
+const ORIGIN: Record<Side, string> = {
+  top: "bottom center",
+  bottom: "top center",
+  left: "right center",
+  right: "left center",
 };
 
 interface TooltipProps {
@@ -75,10 +84,11 @@ export function Tooltip({ label, side = "top", children, className, block }: Too
           <motion.span
             id={id}
             role="tooltip"
-            initial={{ opacity: 0, scale: 0.96, ...OFFSET[side] }}
-            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, ...OFFSET[side] }}
-            transition={{ duration: 0.13, ease: [0.22, 1, 0.36, 1] }}
+            style={{ transformOrigin: ORIGIN[side] }}
+            initial={{ opacity: 0, transform: `${OFFSET[side]} scale(0.96)` }}
+            animate={{ opacity: 1, transform: "translate(0px, 0px) scale(1)" }}
+            exit={{ opacity: 0, transform: `${OFFSET[side]} scale(0.96)` }}
+            transition={{ duration: 0.14, ease: [0.23, 1, 0.32, 1] }}
             className={cn(
               "pointer-events-none absolute z-50 whitespace-nowrap rounded-md bg-foreground",
               "px-2 py-1 text-xs font-medium text-background shadow-md",

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useId } from "react";
 
 /**
@@ -26,6 +26,7 @@ export function Sparkline({
   width?: number;
 }) {
   const gradientId = `spark-${useId().replace(/:/g, "")}`;
+  const reduce = useReducedMotion();
   if (values.length < 2) return null;
 
   const min = Math.min(...values);
@@ -74,6 +75,9 @@ export function Sparkline({
         </linearGradient>
       </defs>
       <path d={area} fill={`url(#${gradientId})`} />
+      {/* The draw-in is the one flourish here, so it stays brief and skips
+          entirely for anyone who has asked for less movement — a line that
+          crawls across four cards at once is noise, not craft. */}
       <motion.path
         d={line}
         fill="none"
@@ -82,9 +86,9 @@ export function Sparkline({
         strokeLinecap="round"
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
-        initial={{ pathLength: 0, opacity: 0 }}
+        initial={reduce ? false : { pathLength: 0, opacity: 0 }}
         animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
       />
     </svg>
   );

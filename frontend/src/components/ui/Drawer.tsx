@@ -82,10 +82,23 @@ export function Drawer({ open, onClose, title, description, footer, size = "md",
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            /* A full `transform` string rather than Motion's `x` shorthand:
+               the shorthand animates as a separate value on the main thread
+               every frame, while a single transform can be handed to the
+               compositor. A drawer opens over a list that is still fetching,
+               which is exactly when main-thread work drops frames.
+
+               `100%` is the panel's own width, so the same line is correct at
+               every breakpoint. Closing is quicker than opening — a dismissal
+               should get out of the way, and matching the open duration makes
+               it feel reluctant. */
+            initial={{ transform: "translateX(100%)" }}
+            animate={{ transform: "translateX(0%)" }}
+            exit={{ transform: "translateX(100%)" }}
+            transition={{
+              duration: open ? 0.32 : 0.22,
+              ease: [0.32, 0.72, 0, 1],
+            }}
             className={cn(
               "relative flex h-full w-full flex-col overflow-hidden border-l border-border bg-surface shadow-lg",
               // Rounded on the leading edge only — the other three meet the

@@ -1,23 +1,40 @@
 "use client";
 
-import { animate, motion, useMotionValue, useTransform } from "framer-motion";
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 import { useEffect } from "react";
 
 import { Sparkline } from "@/components/charts/Sparkline";
 import { cn } from "@/lib/cn";
 
-/** Counts from 0 to `value` once, then tracks it directly on later updates. */
+/**
+ * Counts from 0 to `value` once, then tracks it directly on later updates.
+ *
+ * Kept short. This runs on a page somebody opens every day, and a number that
+ * spins for a second before settling stops being a flourish and starts being
+ * the thing standing between them and the figure they came to read. Someone
+ * who has asked for less motion gets the figure immediately.
+ */
 export function CountUp({ value, className }: { value: number; className?: string }) {
   const count = useMotionValue(0);
+  const reduce = useReducedMotion();
   const rounded = useTransform(count, (latest) => Math.round(latest).toLocaleString());
 
   useEffect(() => {
-    const controls = animate(count, value, { duration: 0.9, ease: [0.22, 1, 0.36, 1] });
+    if (reduce) return;
+    const controls = animate(count, value, { duration: 0.55, ease: [0.23, 1, 0.32, 1] });
     return () => controls.stop();
-  }, [count, value]);
+  }, [count, value, reduce]);
 
-  return <motion.span className={cn("tnum", className)}>{rounded}</motion.span>;
+  // Rendered as a plain string rather than by seeding the motion value, which
+  // leaves the figure showing zero: nothing drives the value onto the element
+  // once the animation that would have done it is skipped. The headline number
+  // is the whole point of the card — it has to be right before it is clever.
+  return (
+    <motion.span className={cn("tnum", className)}>
+      {reduce ? value.toLocaleString() : rounded}
+    </motion.span>
+  );
 }
 
 interface StatCardProps {
@@ -82,19 +99,25 @@ export function StatCard({
 
   return (
     <Element
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, transform: "translateY(8px)" }}
+      animate={{ opacity: 1, transform: "translateY(0px)" }}
       transition={{
         type: "spring",
-        stiffness: 260,
-        damping: 26,
-        delay: Math.min(index, 10) * 0.05,
+        // Apple-style spring: a duration to reason about and a bounce small
+        // enough that a row of stat cards settles rather than wobbles.
+        duration: 0.42,
+        bounce: 0.18,
+        delay: Math.min(index, 10) * 0.04,
       }}
-      {...(onClick ? { onClick, type: "button" as const, whileHover: { y: -3 } } : {})}
+      {...(onClick ? { onClick, type: "button" as const } : {})}
       className={cn(
         emphasis ? "card-feature" : "card",
         "group relative flex flex-col overflow-hidden p-4 text-left",
-        onClick && "cursor-pointer transition-shadow duration-200 hover:shadow-md",
+        // CSS rather than `whileHover`, so it inherits the pointer gating that
+        // keeps a tap on a phone from leaving the card stuck in its lifted
+        // state — and so the lift never competes with the entrance spring.
+        onClick &&
+          "cursor-pointer transition-[transform,box-shadow] duration-hover ease-out hover:-translate-y-0.5 hover:shadow-md",
       )}
     >
       <div className="flex items-start justify-between gap-2">

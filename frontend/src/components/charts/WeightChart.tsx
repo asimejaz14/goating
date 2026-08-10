@@ -51,7 +51,7 @@ export function WeightChart({ weights }: { weights: Weight[] }) {
             dot={{ r: 3.5, fill: CHART_COLORS.primary, strokeWidth: 0 }}
             isAnimationActive
             activeDot={{ r: 5 }}
-            animationDuration={700}
+            animationDuration={480}
           />
         </LineChart>
       </ResponsiveContainer>

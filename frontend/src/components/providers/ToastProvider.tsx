@@ -72,10 +72,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <motion.div
                 key={toast.id}
                 layout
-                initial={{ opacity: 0, y: 16, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.97 }}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                /* Toasts arrive from below and leave the same way. A symmetric
+                   path is what makes the dismissal read as the reverse of the
+                   arrival rather than as a second, unrelated animation.
+                   Motion values retarget from wherever they currently are, so
+                   a second toast landing mid-flight joins the stack smoothly
+                   instead of restarting — the reason not to use keyframes for
+                   anything that can fire twice in a second. */
+                initial={{ opacity: 0, transform: "translateY(16px) scale(0.97)" }}
+                animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
+                exit={{ opacity: 0, transform: "translateY(16px) scale(0.97)" }}
+                transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
                 className="pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-lg border border-border bg-surface px-3.5 py-3 text-foreground shadow-lg"
               >
                 <Icon className={`mt-px h-4 w-4 shrink-0 ${className}`} aria-hidden />

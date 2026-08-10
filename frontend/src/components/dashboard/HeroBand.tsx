@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, CalendarClock, Heart } from "lucide-react";
 import Link from "next/link";
 
@@ -33,15 +33,16 @@ export function HeroBand({
   cards: DashboardCards;
   nextKidding?: UpcomingKidding;
 }) {
+  const reduce = useReducedMotion();
   const does = cards.does;
   const bucks = cards.bucks;
   const total = cards.total_goats || 1;
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ type: "spring", stiffness: 210, damping: 26 }}
+      initial={{ opacity: 0, transform: "translateY(10px)" }}
+      animate={{ opacity: 1, transform: "translateY(0px)" }}
+      transition={{ type: "spring", duration: 0.5, bounce: 0.15 }}
       className="hero px-5 py-6 text-white sm:px-8 sm:py-8"
     >
       <div className="hero-grid pointer-events-none absolute inset-0" aria-hidden />
@@ -65,17 +66,23 @@ export function HeroBand({
           {/* One bar carrying the whole sex split — a donut for two values is
               a chart where a line would do. */}
           <div className="mt-5 max-w-md">
+            {/* Each segment holds its final width and grows along its own axis
+                with a scale, which the compositor can do — animating `width`
+                would relayout the row on every frame. The transform origin is
+                the left edge so both segments unroll from the same side. */}
             <div className="flex h-2 overflow-hidden rounded-full bg-white/15">
               <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(does / total) * 100}%` }}
-                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+                style={{ width: `${(does / total) * 100}%`, transformOrigin: "left" }}
+                initial={reduce ? false : { transform: "scaleX(0)" }}
+                animate={{ transform: "scaleX(1)" }}
+                transition={{ duration: 0.55, ease: [0.23, 1, 0.32, 1], delay: 0.1 }}
                 className="h-full rounded-full bg-gradient-to-r from-accent to-accent/70"
               />
               <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(bucks / total) * 100}%` }}
-                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.28 }}
+                style={{ width: `${(bucks / total) * 100}%`, transformOrigin: "left" }}
+                initial={reduce ? false : { transform: "scaleX(0)" }}
+                animate={{ transform: "scaleX(1)" }}
+                transition={{ duration: 0.55, ease: [0.23, 1, 0.32, 1], delay: 0.18 }}
                 className="h-full rounded-full bg-white/45"
               />
             </div>

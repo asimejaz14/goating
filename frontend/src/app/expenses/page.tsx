@@ -215,7 +215,11 @@ export default function ExpensesPage() {
                           filters.setFilter("month", active ? undefined : bucket.month)
                         }
                         className={cn(
-                          "w-full rounded-lg px-3 py-2 text-left transition-all duration-150",
+                          // Named properties, not `all`: `all` also animates
+                          // layout-affecting values, so a re-render can end up
+                          // tweening width or padding a frame at a time.
+                          "w-full rounded-lg px-3 py-2 text-left",
+                          "transition-[background-color,border-color,color,box-shadow] duration-hover ease-out",
                           active
                             ? "bg-primary text-primary-foreground shadow-sm"
                             : "border border-border bg-surface hover:bg-muted",

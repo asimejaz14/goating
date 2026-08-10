@@ -11,6 +11,14 @@ const hsl = (variable: string) => `hsl(var(--${variable}) / <alpha-value>)`;
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   darkMode: "class",
+  future: {
+    // Wraps every `hover:` variant in `@media (hover: hover)`. A touch screen
+    // synthesises a hover on tap and then leaves it stuck there, so an
+    // ungated `hover:-translate-y-0.5` means a card on a phone lifts when you
+    // press it and stays lifted until you touch something else. Fixing it
+    // here rather than per-utility is the only way it stays fixed.
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     fontSize: {
       xs: ["0.75rem", { lineHeight: "1.1rem" }],
@@ -127,12 +135,22 @@ const config: Config = {
         shimmer: "shimmer 1.6s infinite",
       },
       transitionTimingFunction: {
-        soft: "cubic-bezier(0.22, 1, 0.36, 1)",
+        // `soft` is kept as an alias of the enter/exit curve so the existing
+        // call sites stay correct while new work reaches for the named ones.
+        soft: "var(--ease-out)",
+        out: "var(--ease-out)",
+        "in-out": "var(--ease-in-out)",
+        drawer: "var(--ease-drawer)",
       },
       transitionDuration: {
         DEFAULT: "180ms",
-        // The sidebar collapse. Slower than a hover so the width change reads
-        // as the panel moving rather than the layout jumping.
+        press: "var(--duration-press)",
+        hover: "var(--duration-hover)",
+        popover: "var(--duration-popover)",
+        close: "var(--duration-close)",
+        panel: "var(--duration-panel)",
+        // The sidebar slide. Slower than a hover so the panel reads as moving
+        // rather than as the layout jumping.
         250: "250ms",
       },
     },

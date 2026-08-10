@@ -70,10 +70,16 @@ export function Modal({ open, onClose, title, description, footer, size = "sm", 
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            /* One transform string so the whole thing can be composited, and
+               a scale that starts at 0.98 rather than 0 — nothing in the real
+               world arrives from nothing, and a dialog that grows from a point
+               reads as a special effect rather than as a panel appearing.
+               A modal is not anchored to a trigger, so it keeps a centred
+               origin; the popovers are the ones that scale from their field. */
+            initial={{ opacity: 0, transform: "translateY(8px) scale(0.98)" }}
+            animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
+            exit={{ opacity: 0, transform: "translateY(4px) scale(0.98)" }}
+            transition={{ duration: open ? 0.2 : 0.15, ease: [0.23, 1, 0.32, 1] }}
             className={cn(
               "relative flex w-full flex-col rounded-lg border border-border bg-surface shadow-lg",
               SIZES[size],

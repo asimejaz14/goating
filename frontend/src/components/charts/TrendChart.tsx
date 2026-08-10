@@ -122,7 +122,7 @@ export function TrendLine({
               stroke: "hsl(var(--surface))",
               strokeWidth: 2.5,
             }}
-            animationDuration={900}
+            animationDuration={520}
             animationEasing="ease-out"
           />
         </AreaChart>
@@ -170,7 +170,7 @@ export function TrendBars({
             cursor={{ fill: CHART_COLORS.grid, opacity: 0.35, radius: 8 }}
             content={<ChartTooltip unit={unit} prefix={prefix} />}
           />
-          <Bar dataKey="value" name="Total" radius={[8, 8, 8, 8]} animationDuration={800}>
+          <Bar dataKey="value" name="Total" radius={[8, 8, 8, 8]} animationDuration={480}>
             {data.map((point, index) => (
               <Cell
                 key={point.period}

@@ -74,6 +74,31 @@
     --radius-md: 0.625rem; /* 10px — inputs, buttons */
     --radius-sm: 0.5rem; /* 8px — badges, chips */
 
+    /**
+     * Motion tokens.
+     *
+     * Three curves, not one, because they answer different questions. Things
+     * arriving or leaving want a strong ease-out — it starts fast, so the
+     * moment the user is actually watching is the moment something happens.
+     * Things travelling across the screen want ease-in-out, which reads as an
+     * object with mass. A panel sliding in off the edge wants the flatter iOS
+     * curve, which is why drawers there feel attached to the finger.
+     *
+     * `ease-in` appears nowhere on purpose: it starts slow, which delays the
+     * frame the eye is waiting for and makes the same duration feel longer.
+     */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+    /* Interface motion stays under ~300ms. Anything slower reads as lag
+       rather than as polish, however pretty the curve. */
+    --duration-press: 140ms;
+    --duration-hover: 180ms;
+    --duration-popover: 200ms;
+    --duration-close: 150ms;
+    --duration-panel: 320ms;
+
     /* Shadows are tokens rather than fixed values because they cannot be the
        same in both themes: a soft slate shadow is what separates a white card
        from a white-ish page, and on a dark page it is invisible. */
@@ -286,11 +311,34 @@
   }
 }
 
+/**
+ * Reduced motion means less movement, not a dead interface.
+ *
+ * Blanking every duration to zero also removes the fades and colour changes
+ * that explain what just happened — a drawer that teleports into place is
+ * harder to follow than one that fades, not easier. So movement goes and
+ * cross-fades stay: transforms are pinned to their resting state, transitions
+ * on transform are dropped, and everything else keeps a short, gentle fade.
+ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0.16s !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.16s !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Kill the travel itself rather than the whole transition. */
+  *, *::before, *::after {
+    transition-property: opacity, background-color, border-color, color, fill,
+      stroke, box-shadow !important;
+  }
+
+  /* Hover lifts and icon nudges are pure decoration — they go entirely. */
+  .hover\:-translate-y-0\.5:hover,
+  .group:hover .group-hover\:scale-105,
+  .group:hover .group-hover\:scale-110,
+  .group\/nav:hover .group-hover\/nav\:scale-110 {
+    transform: none !important;
   }
 }

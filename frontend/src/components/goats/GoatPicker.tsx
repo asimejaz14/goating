@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -56,7 +57,12 @@ export function GoatPicker({
   const [open, setOpen] = useState(false);
   const [term, setTerm] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
-  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [rect, setRect] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    above: boolean;
+  } | null>(null);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -102,6 +108,8 @@ export function GoatPicker({
       top: flip ? Math.max(GAP, box.top - Math.min(PANEL_MAX_HEIGHT, box.top - GAP) - GAP) : box.bottom + GAP,
       left: box.left,
       width: box.width,
+      // Which way it opened decides which edge it grows from below.
+      above: flip,
     });
   }, []);
 
@@ -172,9 +180,24 @@ export function GoatPicker({
   }
 
   const panel = open && rect && (
-    <div
+    <motion.div
       ref={panelRef}
-      style={{ top: rect.top, left: rect.left, width: Math.max(rect.width, 260) }}
+      style={{
+        top: rect.top,
+        left: rect.left,
+        width: Math.max(rect.width, 260),
+        // Grown from the edge that touches the field, so it reads as coming
+        // out of the control rather than materialising over the page. A
+        // panel that opened upwards has to scale from its bottom edge or the
+        // motion points away from where it came from.
+        transformOrigin: rect.above ? "bottom left" : "top left",
+      }}
+      initial={{ opacity: 0, transform: "translateY(-4px) scale(0.97)" }}
+      animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
+      exit={{ opacity: 0, transform: "translateY(-2px) scale(0.98)" }}
+      /* Opening is a considered act; dismissing should simply be gone. Giving
+         the close the same 200ms makes the list feel reluctant to leave. */
+      transition={{ duration: open ? 0.2 : 0.15, ease: [0.23, 1, 0.32, 1] }}
       className="fixed z-[70] overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
     >
       <div className="border-b border-border p-2">
@@ -243,7 +266,7 @@ export function GoatPicker({
           ))}
         </ul>
       )}
-    </div>
+    </motion.div>
   );
 
   return (
@@ -295,7 +318,11 @@ export function GoatPicker({
         </button>
       )}
 
-      {typeof document !== "undefined" && panel && createPortal(panel, document.body)}
+      {/* `AnimatePresence` stays mounted so the panel has somewhere to play
+          its exit from — conditionally rendering the portal itself would tear
+          the element out of the tree before it could animate away. */}
+      {typeof document !== "undefined" &&
+        createPortal(<AnimatePresence>{panel}</AnimatePresence>, document.body)}
     </div>
   );
 }

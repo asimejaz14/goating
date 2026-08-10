@@ -19,13 +19,15 @@ interface CardProps extends React.ComponentProps<typeof motion.div> {
 export function Card({ index = 0, interactive, className, children, ...props }: CardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, transform: "translateY(6px)" }}
+      animate={{ opacity: 1, transform: "translateY(0px)" }}
       transition={{
         duration: 0.22,
-        ease: [0.22, 1, 0.36, 1],
-        // Cap the stagger so the last card on a full page is not left waiting.
-        delay: Math.min(index, 8) * 0.025,
+        ease: [0.23, 1, 0.32, 1],
+        // Cap the stagger so the last card on a full page is not left waiting:
+        // the offset is small and the ceiling keeps the whole run under ~200ms,
+        // past which a page reads as loading rather than as arriving.
+        delay: Math.min(index, 8) * 0.04,
       }}
       className={cn(
         "card p-4",
